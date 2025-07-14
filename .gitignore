@@ -11,10 +11,11 @@ node_modules/
 
 # Environment variables
 .env
+.venv
+
 
 # Editor directories and files
 .idea
-.vscode
 *.suo
 *.ntvs*
 *.njsproj
@@ -23,3 +24,4 @@ node_modules/
 
 # OS specific
 .DS_Store
+.history
