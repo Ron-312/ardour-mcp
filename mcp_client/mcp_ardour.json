@@ -1,0 +1,105 @@
+{
+  "name": "ardour-mcp",
+  "version": "1.0.0",
+  "description": "Model Context Protocol server for Ardour DAW control",
+  "tools": [
+    {
+      "name": "transport_play",
+      "description": "Start transport playback in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_stop",
+      "description": "Stop transport playback in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "set_track_fader",
+      "description": "Set track fader level in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "track_number": {
+            "type": "integer",
+            "description": "Track number (1-based)",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "gain_db": {
+            "type": "number",
+            "description": "Gain in decibels",
+            "minimum": -60.0,
+            "maximum": 20.0
+          }
+        },
+        "required": ["track_number", "gain_db"]
+      }
+    },
+    {
+      "name": "set_track_mute",
+      "description": "Mute or unmute a track in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "track_number": {
+            "type": "integer",
+            "description": "Track number (1-based)",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "mute": {
+            "type": "boolean",
+            "description": "True to mute, False to unmute"
+          }
+        },
+        "required": ["track_number", "mute"]
+      }
+    },
+    {
+      "name": "set_track_solo",
+      "description": "Solo or unsolo a track in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "track_number": {
+            "type": "integer",
+            "description": "Track number (1-based)",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "solo": {
+            "type": "boolean",
+            "description": "True to solo, False to unsolo"
+          }
+        },
+        "required": ["track_number", "solo"]
+      }
+    }
+  ],
+  "resources": [
+    {
+      "uri": "ardour://status",
+      "name": "Ardour Status",
+      "description": "Current status of Ardour DAW",
+      "mimeType": "application/json"
+    }
+  ],
+  "server": {
+    "baseUrl": "http://localhost:8000",
+    "endpoints": {
+      "transport_play": "/transport/play",
+      "transport_stop": "/transport/stop",
+      "set_track_fader": "/track/{track_number}/fader",
+      "set_track_mute": "/track/{track_number}/mute",
+      "set_track_solo": "/track/{track_number}/solo"
+    }
+  }
+}

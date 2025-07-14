@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  fastapi-server:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+      - "3819:3819/udp"
+    environment:
+      - OSC_TARGET_IP=ardour
+      - OSC_TARGET_PORT=3819
+      - HTTP_PORT=8000
+      - HTTP_HOST=0.0.0.0
+    depends_on:
+      - ardour
+    volumes:
+      - .:/app
+    networks:
+      - ardour-network
+
+  ardour:
+    image: ubuntu:22.04
+    command: /bin/bash -c "apt-get update && apt-get install -y ardour && ardour --no-gui --osc-port=3819"
+    ports:
+      - "3819:3819/udp"
+    networks:
+      - ardour-network
+
+networks:
+  ardour-network:
+    driver: bridge

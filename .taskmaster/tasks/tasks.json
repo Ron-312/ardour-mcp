@@ -1,0 +1,216 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Project Repository Structure",
+        "description": "Create the basic repository layout as defined in the PRD, including directories (mcp_server, mcp_client, docs) and base files (README, .env.example, docker-compose.yml).",
+        "details": "Initialize a Git repository with the structure:\n  - mcp_server/ (for FastAPI server and OSC client code)\n  - mcp_client/ (for the single-file MCP client and JSON manifest)\n  - docs/ (for README and OSC cheat-sheet)\n  - docker-compose.yml and .env.example at the root. Use standard Python project layout practices with a requirements.txt to manage dependencies (pin FastAPI>=0.95.0, python-osc>=1.7.4).",
+        "testStrategy": "Verify the folder structure and file existence; run 'tree' command to show correct layout.",
+        "priority": "high",
+        "dependencies": [],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 2,
+        "title": "Setup Environment Configuration",
+        "description": "Prepare environment variable configuration using a .env file, and provide an example file (.env.example) at the project root.",
+        "details": "Define necessary environment variables for the FastAPI server, such as OSC target IP, UDP port (3819), and HTTP port. Use python-dotenv (version>=0.21.0) for loading environment variables in development. Document variables in .env.example with comments.",
+        "testStrategy": "Manually load variables with python-dotenv in a small test script to ensure values are correctly parsed.",
+        "priority": "high",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 3,
+        "title": "Implement FastAPI Server Skeleton",
+        "description": "Set up the basic FastAPI application in the mcp_server folder with initial endpoint routing structure.",
+        "details": "Create main.py or app.py that initializes a FastAPI instance. Set up routing directories (api folder) and include stub endpoints for transport and track controls. Use FastAPI version>=0.95.0 and Uvicorn as the ASGI server.",
+        "testStrategy": "Run the Uvicorn server locally and check /docs endpoint for auto-generated API documentation.",
+        "priority": "high",
+        "dependencies": [
+          1,
+          2
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 4,
+        "title": "Implement Server Configuration Management",
+        "description": "Develop configuration management (config.py) to read environment variables and provide settings for the OSC client and server.",
+        "details": "In mcp_server/config.py, implement a configuration class (or use Pydantic BaseSettings) to load environment variables (OSC IP, UDP port, etc). Use pydantic>=1.10.0 to enforce types and constraints.",
+        "testStrategy": "Write unit tests to check if the configuration loads correctly from a test .env file.",
+        "priority": "high",
+        "dependencies": [
+          3
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 5,
+        "title": "Develop OSC Client Integration",
+        "description": "Implement the OSC client in mcp_server/osc_client.py using python-osc to communicate with Ardour via UDP.",
+        "details": "Set up the OSC client using python-osc (version>=1.7.4). Create functions to send OSC messages to Ardour's UDP port 3819. Ensure error handling for network timeouts and connection issues. Document function calls and expected OSC message structure.",
+        "testStrategy": "Mock an OSC server to verify message formatting and delivery by logging outgoing messages.",
+        "priority": "high",
+        "dependencies": [
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 6,
+        "title": "Implement play_transport Endpoint",
+        "description": "Create an endpoint (POST /transport/play) that maps to the OSC message to start playback (interpreted as /ardour/transport_play).",
+        "details": "In mcp_server/api/transport.py, implement a FastAPI route for POST /transport/play that calls the OSC client's method from Task 5. Use standard HTTP status codes for success and error responses; include logging.",
+        "testStrategy": "Use curl or Postman to call the endpoint and verify that the correct OSC message is sent. Unit test endpoint with FastAPI's TestClient.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 7,
+        "title": "Implement stop_transport Endpoint",
+        "description": "Create an endpoint (POST /transport/stop) that maps to the OSC message to stop playback (interpreted as /ardour/transport_stop).",
+        "details": "In mcp_server/api/transport.py, add a POST route for /transport/stop invoking the OSC client. Ensure similar error handling and logging as in Task 6.",
+        "testStrategy": "Validate via automated tests and manual calls ensuring that the OSC stop command is fired appropriately.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 8,
+        "title": "Implement set_fader Endpoint for Track Controls",
+        "description": "Implement an endpoint (POST /track/{n}/fader) to set the fader gain for a given track by sending OSC message /strip/{n}/gain.",
+        "details": "In mcp_server/api/track.py, build a route for POST /track/{n}/fader accepting input gain (dB) and performing validation (e.g., range checks). Use path parameters for track number and include robust error handling. This endpoint should call the OSC client method created in Task 5.",
+        "testStrategy": "Write unit tests with valid and invalid input, verifying that OSC messages include the correct track number and gain, and that errors return appropriate status codes.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          5
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 9,
+        "title": "Integrate Logging and Error Handling in FastAPI Server",
+        "description": "Implement a consistent logging mechanism and error handling across all server endpoints.",
+        "details": "Use Python's built-in logging library and FastAPI exception handlers. Configure logging in the main app file. Ensure that both expected errors and unexpected exceptions are logged with details for debugging.",
+        "testStrategy": "Trigger errors (e.g., invalid track numbers) and inspect logs to verify that proper information is logged, then assert that responses include error details where applicable.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          4
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 10,
+        "title": "Develop MCP Client Script with Manifest Generation",
+        "description": "Create the single-file MCP client (ardour_mcp_client.py) that prints a JSON manifest when run with a --describe flag and serves the manifest at a well-known endpoint.",
+        "details": "Implement the client in mcp_client/ardour_mcp_client.py. Use argparse to handle the --describe flag. The script should print a JSON manifest (defined in mcp_ardour.json) and include endpoints and tool descriptions. Ensure JSON is properly formatted and compliant with the manifest schema.",
+        "testStrategy": "Run the client script with --describe and compare output with expected JSON manifest structure; use unit tests for command-line parsing.",
+        "priority": "medium",
+        "dependencies": [
+          1
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 11,
+        "title": "Implement HTTP Proxy Functionality in MCP Client",
+        "description": "Enhance the MCP client to forward function-call requests from stdin to the MCP server via HTTP proxying.",
+        "details": "Within the MCP client script, implement an HTTP client (using requests library version>=2.28.0) to send JSON data to the FastAPI server endpoints. Ensure error handling for connection failures and unexpected responses.",
+        "testStrategy": "Simulate input via stdin and assert the client sends the correct HTTP requests; use mocking to simulate server responses.",
+        "priority": "medium",
+        "dependencies": [
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 12,
+        "title": "Create Docker Compose Configuration",
+        "description": "Develop a docker-compose.yml file to containerize both the FastAPI server and Ardour headless instances, including port mappings for UDP 3819 and HTTP API.",
+        "details": "Define two services in docker-compose.yml: one for the FastAPI server (based on a Python image, using Uvicorn command) and one for Ardour headless. Map ports accordingly. Use minimal container images, configuring environment variables via the .env file. Specify image versions and Docker best practices.",
+        "testStrategy": "Run 'docker-compose up' locally, and verify that both containers startup without errors, and that API endpoints are reachable using mapped ports.",
+        "priority": "high",
+        "dependencies": [
+          3,
+          10
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 13,
+        "title": "Develop Integration and End-to-End Tests",
+        "description": "Write automated integration tests to verify the interaction between MCP client, FastAPI server, and OSC message delivery to Ardour.",
+        "details": "Utilize pytest along with FastAPI's TestClient for REST API testing. Mock the OSC client where necessary to only verify message formatting and delivery. Create tests that simulate a complete workflow (for play, stop, and set_fader commands).",
+        "testStrategy": "Run pytest tests; use both unit tests for individual endpoints and end-to-end tests connecting through the Docker containers if possible.",
+        "priority": "high",
+        "dependencies": [
+          6,
+          7,
+          8,
+          11
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 14,
+        "title": "Documentation and Developer Setup",
+        "description": "Develop comprehensive documentation including a README, OSC cheat-sheet, developer setup instructions, and usage guidelines.",
+        "details": "Create documentation files in the docs/ folder. The README should explain project purpose, setup steps (including Docker usage), and integration details. Prepare an OSC cheat-sheet covering the command mappings to Ardour. Utilize Markdown format and ensure clarity.",
+        "testStrategy": "Perform a walkthrough setup to verify that a new developer can follow the documentation and run the project successfully.",
+        "priority": "medium",
+        "dependencies": [
+          1,
+          2,
+          12
+        ],
+        "status": "pending",
+        "subtasks": []
+      },
+      {
+        "id": 15,
+        "title": "Final Integration Testing and Demo Preparation",
+        "description": "Conduct full end-to-end integration testing and prepare a demo to validate that all MCP client commands correctly trigger Ardour operations.",
+        "details": "Combine all components and run integration tests in a local environment. Verify that typing commands in the host triggers the proper HTTP calls, OSC messages, and responses. Record any issues and create a checklist for demo presentation. Use tools like Docker logs and network sniffer if needed.",
+        "testStrategy": "Manually test the demo use cases (play, stop, set_fader) through the MCP client interface and validate against the Ardour headless behavior. Automate regression tests where possible.",
+        "priority": "medium",
+        "dependencies": [
+          13,
+          14
+        ],
+        "status": "pending",
+        "subtasks": []
+      }
+    ],
+    "metadata": {
+      "created": "2025-07-14T17:05:49.090Z",
+      "updated": "2025-07-14T17:05:49.090Z",
+      "description": "Tasks for master context"
+    }
+  }
+}

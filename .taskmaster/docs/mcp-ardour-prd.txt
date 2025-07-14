@@ -1,0 +1,110 @@
+# MCP-for-Ardour Project Requirements Document
+
+## Project Overview
+A local loop that lets you type plain English in Cursor IDE or Claude Desktop and immediately see Ardour start/stop or move faders. No sign-in, no secrets, no cloud calls—just your machine.
+
+## Architecture Overview
+
+### Moving Parts (and who talks to whom)
+- **Chat host**: Cursor IDE / Claude Desktop - Where the user types. These apps automatically detect any "MCP client" on the path and list its tools.
+- **MCP client** (tiny Python script): Prints a JSON manifest on --describe, then listens on stdin for function-calls and proxies them over HTTP.
+- **MCP server** (FastAPI): Translates each REST call into Ardour OSC messages.
+- **Ardour headless**: Exposes OSC at UDP 3819 once "OSC control" is enabled.
+
+### Initial Tools
+The client+server pair will provide three callable tools to start with:
+1. **play_transport**: Start playback (POST /transport/play → /ardour/transport_play)
+2. **stop_transport**: Stop playback (POST /transport/stop → /ardour/transport_stop)
+3. **set_fader**: Set gain (dB) for any track (POST /track/{n}/fader → /strip/{n}/gain)
+
+## Project Structure
+```
+ardour-chat-demo/
+│
+├── mcp_server/                 ← FastAPI + python-osc  ➜ Ardour
+│   ├── api/transport.py
+│   ├── api/track.py
+│   ├── osc_client.py
+│   └── config.py
+│
+├── mcp_client/                 ← single-file helper the hosts discover
+│   ├── ardour_mcp_client.py    # prints manifest, proxies calls
+│   └── mcp_ardour.json         # same manifest, also served at /.well-known
+│
+├── docs/                       ← quick README + OSC cheat-sheet
+│
+├── docker-compose.yml          ← Ardour headless + FastAPI
+└── .env.example
+```
+
+## Technical Requirements
+
+### MCP Server (FastAPI)
+- FastAPI application with Python-OSC integration
+- REST endpoints that translate to OSC messages
+- Configuration management for OSC client
+- Error handling and logging
+- Docker containerization support
+
+### MCP Client (Python Script)
+- Single-file Python script for MCP client
+- JSON manifest generation and serving
+- HTTP proxy functionality to MCP server
+- Command-line interface with --describe flag
+- Well-known endpoint serving
+
+### Docker Setup
+- Docker Compose configuration
+- Ardour headless container
+- FastAPI server container
+- Environment variable configuration
+- Port mapping (UDP 3819 for OSC, HTTP for API)
+
+### Documentation
+- Quick README for setup and usage
+- OSC cheat-sheet for Ardour integration
+- Developer setup instructions
+- Testing procedures
+
+## Development Phases
+
+### Phase 1: Core Infrastructure
+- Set up project structure and dependencies
+- Implement basic FastAPI server
+- Create OSC client for Ardour communication
+- Implement MCP client script
+
+### Phase 2: Transport Controls
+- Implement play_transport functionality
+- Implement stop_transport functionality
+- Test transport controls with Ardour
+
+### Phase 3: Track Controls
+- Implement set_fader functionality
+- Add track parameter validation
+- Test fader controls with Ardour
+
+### Phase 4: Integration & Testing
+- Docker containerization
+- End-to-end testing
+- Documentation completion
+- Demo preparation
+
+## Success Criteria
+- User can type "play" in Cursor/Claude and see Ardour start playback
+- User can type "stop" and see Ardour stop playback
+- User can type "mute track 4" and see track 4 fader drop to -60dB
+- All communication happens locally without cloud dependencies
+- Setup process is documented and repeatable
+
+## Scope Boundaries (Demo-only)
+- Zero security: trust localhost; no auth tokens, no rate limits
+- Three tools are enough to prove concept; more can be added later
+- No persistence: every chat starts from whatever session Ardour last opened
+
+## Key References
+- Anthropic MCP overview
+- Cursor MCP docs
+- Claude Desktop quick-start
+- Ardour OSC basics
+- Model Context Protocol documentation 

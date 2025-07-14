@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(task-master list:*)",
+      "Bash(ls:*)",
+      "Bash(npm ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(find:*)",
+      "Bash(python test:*)",
+      "Bash(curl:*)",
+      "Bash(python -m pytest tests/test_config.py -v)",
+      "Bash(pip install:*)",
+      "Bash(chmod:*)",
+      "Bash(python:*)"
+    ],
+    "deny": []
+  }
+}
