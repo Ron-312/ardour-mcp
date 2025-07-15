@@ -58,10 +58,10 @@ class OSCClient:
                 logger.info("Sending with no arguments - using empty list")
                 self.client.send_message(address, [])
             
-            logger.info(f"✅ OSC message sent successfully: {address} {args}")
+            logger.info(f"OSC message sent successfully: {address} {args}")
             return True
         except Exception as e:
-            logger.error(f"❌ Failed to send OSC message {address}: {e}")
+            logger.error(f"Failed to send OSC message {address}: {e}")
             logger.error(f"Connection details: {self.ip}:{self.port}")
             return False
     
@@ -150,6 +150,236 @@ class OSCClient:
         strip_index = strip_number - 1
         address = f"/strip/{strip_index}/solo"
         return self.send_message(address, 1 if solo else 0)
+    
+    def set_strip_name(self, strip_number: int, name: str) -> bool:
+        """Set name for a specific strip/track
+        
+        Args:
+            strip_number: Track number (1-based)
+            name: New name for the track
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Convert to 0-based for OSC message
+        strip_index = strip_number - 1
+        address = f"/strip/{strip_index}/name"
+        return self.send_message(address, name)
+    
+    def set_strip_record_enable(self, strip_number: int, enabled: bool = True) -> bool:
+        """Enable/disable recording for a specific strip/track
+        
+        Args:
+            strip_number: Track number (1-based)
+            enabled: True to enable recording, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Convert to 0-based for OSC message
+        strip_index = strip_number - 1
+        address = f"/strip/{strip_index}/recenable"
+        return self.send_message(address, 1 if enabled else 0)
+    
+    def set_strip_record_safe(self, strip_number: int, safe: bool = True) -> bool:
+        """Enable/disable record safe for a specific strip/track
+        
+        Args:
+            strip_number: Track number (1-based)
+            safe: True to enable record safe, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Convert to 0-based for OSC message
+        strip_index = strip_number - 1
+        address = f"/strip/{strip_index}/record_safe"
+        return self.send_message(address, 1 if safe else 0)
+    
+    def set_strip_pan(self, strip_number: int, pan_position: float) -> bool:
+        """Set pan position for a specific strip/track
+        
+        Args:
+            strip_number: Track number (1-based)
+            pan_position: Pan position (-1.0 = full left, 0.0 = center, 1.0 = full right)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Convert to 0-based for OSC message
+        strip_index = strip_number - 1
+        address = f"/strip/{strip_index}/pan_stereo_position"
+        # Clamp pan position to valid range
+        pan_position = max(-1.0, min(1.0, pan_position))
+        return self.send_message(address, pan_position)
+    
+    def query_strip_list(self) -> bool:
+        """Query Ardour for list of all strips/tracks
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/strip/list", 1)
+    
+    # Send/Aux Control Commands
+    def set_send_level(self, track_index: int, send_index: int, level: float) -> bool:
+        """Set send level for track to specific aux
+        
+        Args:
+            track_index: Track index (0-based)
+            send_index: Send index (0-based)  
+            level: Send level (0.0-1.0)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message(f"/strip/{track_index}/send/{send_index}/fader", level)
+    
+    def set_send_gain(self, track_index: int, send_index: int, gain_db: float) -> bool:
+        """Set send gain in dB for track to specific aux
+        
+        Args:
+            track_index: Track index (0-based)
+            send_index: Send index (0-based)
+            gain_db: Send gain in dB
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message(f"/strip/{track_index}/send/{send_index}/gain", gain_db)
+    
+    def set_send_enable(self, track_index: int, send_index: int, enabled: bool) -> bool:
+        """Enable or disable a send
+        
+        Args:
+            track_index: Track index (0-based)
+            send_index: Send index (0-based)
+            enabled: True to enable, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message(f"/strip/{track_index}/send/{send_index}/enable", 1 if enabled else 0)
+    
+    def list_track_sends(self, track_index: int) -> bool:
+        """List all sends for a track
+        
+        Args:
+            track_index: Track index (0-based)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message(f"/strip/{track_index}/sends", 1)
+    
+    # Session Management Commands
+    def open_add_track_dialog(self) -> bool:
+        """Open Ardour's Add Track/Bus dialog
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/access_action", "Main/AddTrackBus")
+    
+    def save_session(self) -> bool:
+        """Save current session
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/access_action", "Main/Save")
+    
+    def save_session_as(self) -> bool:
+        """Open Save Session As dialog
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/access_action", "Main/SaveAs")
+    
+    def create_snapshot(self, switch_to_new: bool = False) -> bool:
+        """Create a session snapshot
+        
+        Args:
+            switch_to_new: If True, switch to new snapshot; if False, stay on current
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        if switch_to_new:
+            return self.send_message("/access_action", "Main/QuickSnapshotSwitch")
+        else:
+            return self.send_message("/access_action", "Main/QuickSnapshotStay")
+    
+    def undo_last_action(self) -> bool:
+        """Undo last action
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/access_action", "Editor/undo")
+    
+    def redo_last_action(self) -> bool:
+        """Redo last action
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/access_action", "Editor/redo")
+    
+    # Transport Extensions
+    def toggle_loop(self) -> bool:
+        """Toggle loop mode
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/loop_toggle", 1)
+    
+    def goto_start(self) -> bool:
+        """Move playhead to start"""
+        return self.send_message("/goto_start", 1)
+    
+    def goto_end(self) -> bool:
+        """Move playhead to end"""
+        return self.send_message("/goto_end", 1)
+    
+    def add_marker(self) -> bool:
+        """Add marker at current position
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/add_marker", 1)
+    
+    def next_marker(self) -> bool:
+        """Go to next marker
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/next_marker", 1)
+    
+    def prev_marker(self) -> bool:
+        """Go to previous marker
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/prev_marker", 1)
+    
+    def set_transport_speed(self, speed: float) -> bool:
+        """Set transport speed
+        
+        Args:
+            speed: Speed multiplier (-8.0 to 8.0, 1.0 = normal speed)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Clamp speed to valid range
+        speed = max(-8.0, min(8.0, speed))
+        return self.send_message("/set_transport_speed", speed)
     
     def test_connection(self) -> bool:
         """Test connection to Ardour by sending a query message"""

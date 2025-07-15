@@ -11,7 +11,7 @@ from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
 
-from mcp_server.api import transport, track
+from mcp_server.api import transport, track, session, sends
 from mcp_server.config import get_settings
 
 # Load environment variables
@@ -74,6 +74,8 @@ async def log_requests(request: Request, call_next):
 # Include routers
 app.include_router(transport.router)
 app.include_router(track.router)
+app.include_router(session.router)
+app.include_router(sends.router)
 
 # Configure CORS
 app.add_middleware(

@@ -11,7 +11,9 @@
       "Bash(python -m pytest tests/test_config.py -v)",
       "Bash(pip install:*)",
       "Bash(chmod:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "WebFetch(domain:manual.ardour.org)",
+      "Bash(task-master set-status:*)"
     ],
     "deny": []
   }

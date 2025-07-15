@@ -82,6 +82,256 @@
         },
         "required": ["track_number", "solo"]
       }
+    },
+    {
+      "name": "set_track_name",
+      "description": "Set the name of a track in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "track_number": {
+            "type": "integer",
+            "description": "Track number (1-based)",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "name": {
+            "type": "string",
+            "description": "New name for the track",
+            "minLength": 1,
+            "maxLength": 100
+          }
+        },
+        "required": ["track_number", "name"]
+      }
+    },
+    {
+      "name": "set_track_record_enable",
+      "description": "Enable or disable recording for a track in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "track_number": {
+            "type": "integer",
+            "description": "Track number (1-based)",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "True to enable recording, False to disable"
+          }
+        },
+        "required": ["track_number", "enabled"]
+      }
+    },
+    {
+      "name": "set_track_record_safe",
+      "description": "Enable or disable record safe mode for a track in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "track_number": {
+            "type": "integer",
+            "description": "Track number (1-based)",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "safe": {
+            "type": "boolean",
+            "description": "True to enable record safe, False to disable"
+          }
+        },
+        "required": ["track_number", "safe"]
+      }
+    },
+    {
+      "name": "set_track_pan",
+      "description": "Set the pan position of a track in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "track_number": {
+            "type": "integer",
+            "description": "Track number (1-based)",
+            "minimum": 1,
+            "maximum": 256
+          },
+          "pan_position": {
+            "type": "number",
+            "description": "Pan position (-1.0 = full left, 0.0 = center, 1.0 = full right)",
+            "minimum": -1.0,
+            "maximum": 1.0
+          }
+        },
+        "required": ["track_number", "pan_position"]
+      }
+    },
+    {
+      "name": "list_tracks",
+      "description": "Get a list of all tracks and buses in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_rewind",
+      "description": "Rewind transport to beginning in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_fast_forward",
+      "description": "Fast forward transport in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_goto_start",
+      "description": "Move playhead to start in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_goto_end",
+      "description": "Move playhead to end in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_toggle_roll",
+      "description": "Toggle between play and stop in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_toggle_loop",
+      "description": "Toggle loop mode in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_set_speed",
+      "description": "Set transport speed in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "speed": {
+            "type": "number",
+            "description": "Speed multiplier (-8.0 to 8.0, 1.0 = normal speed)",
+            "minimum": -8.0,
+            "maximum": 8.0
+          }
+        },
+        "required": ["speed"]
+      }
+    },
+    {
+      "name": "transport_add_marker",
+      "description": "Add marker at current position in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_next_marker",
+      "description": "Go to next marker in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "transport_prev_marker",
+      "description": "Go to previous marker in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "session_open_add_track_dialog",
+      "description": "Open Ardour's Add Track/Bus dialog",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "session_save",
+      "description": "Save current session in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "session_save_as",
+      "description": "Open Save Session As dialog in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "session_create_snapshot",
+      "description": "Create a session snapshot in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "switch_to_new": {
+            "type": "boolean",
+            "description": "Switch to new snapshot after creation",
+            "default": false
+          }
+        },
+        "required": []
+      }
+    },
+    {
+      "name": "session_undo",
+      "description": "Undo last action in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
+    },
+    {
+      "name": "session_redo",
+      "description": "Redo last action in Ardour",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      }
     }
   ],
   "resources": [
@@ -99,7 +349,28 @@
       "transport_stop": "/transport/stop",
       "set_track_fader": "/track/{track_number}/fader",
       "set_track_mute": "/track/{track_number}/mute",
-      "set_track_solo": "/track/{track_number}/solo"
+      "set_track_solo": "/track/{track_number}/solo",
+      "set_track_name": "/track/{track_number}/name",
+      "set_track_record_enable": "/track/{track_number}/record-enable",
+      "set_track_record_safe": "/track/{track_number}/record-safe",
+      "set_track_pan": "/track/{track_number}/pan",
+      "list_tracks": "/track/list",
+      "transport_rewind": "/transport/rewind",
+      "transport_fast_forward": "/transport/fast-forward",
+      "transport_goto_start": "/transport/goto-start",
+      "transport_goto_end": "/transport/goto-end",
+      "transport_toggle_roll": "/transport/toggle-roll",
+      "transport_toggle_loop": "/transport/toggle-loop",
+      "transport_set_speed": "/transport/speed",
+      "transport_add_marker": "/transport/add-marker",
+      "transport_next_marker": "/transport/next-marker",
+      "transport_prev_marker": "/transport/prev-marker",
+      "session_open_add_track_dialog": "/session/add-track-dialog",
+      "session_save": "/session/save",
+      "session_save_as": "/session/save-as",
+      "session_create_snapshot": "/session/snapshot",
+      "session_undo": "/session/undo",
+      "session_redo": "/session/redo"
     }
   }
 }
