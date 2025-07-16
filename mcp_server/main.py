@@ -11,8 +11,9 @@ from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
 
-from mcp_server.api import transport, track, session, sends
+from mcp_server.api import transport, track, session, sends, plugins, recording
 from mcp_server.config import get_settings
+from mcp_server.osc_listener import start_osc_listener
 
 # Load environment variables
 load_dotenv()
@@ -76,6 +77,8 @@ app.include_router(transport.router)
 app.include_router(track.router)
 app.include_router(session.router)
 app.include_router(sends.router)
+app.include_router(plugins.router)
+app.include_router(recording.router)
 
 # Configure CORS
 app.add_middleware(
@@ -103,6 +106,27 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+@app.on_event("startup")
+async def startup_event():
+    """Initialize OSC listener on startup"""
+    logger.info("Starting OSC listener for plugin discovery...")
+    try:
+        start_osc_listener()
+        logger.info("OSC listener started successfully")
+    except Exception as e:
+        logger.error(f"Failed to start OSC listener: {e}")
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Clean up OSC listener on shutdown"""
+    logger.info("Stopping OSC listener...")
+    try:
+        from mcp_server.osc_listener import stop_osc_listener
+        stop_osc_listener()
+        logger.info("OSC listener stopped successfully")
+    except Exception as e:
+        logger.error(f"Failed to stop OSC listener: {e}")
 
 if __name__ == "__main__":
     import uvicorn

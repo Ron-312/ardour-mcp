@@ -2,8 +2,12 @@
 Unit tests for configuration management
 """
 
-import pytest
+import sys
 import os
+# Add the parent directory to Python path so we can import mcp_server
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import pytest
 from mcp_server.config import Settings, get_settings, validate_settings, get_osc_config, get_server_config
 
 def test_settings_default_values():

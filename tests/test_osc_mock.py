@@ -3,6 +3,11 @@
 Mock OSC server for testing message formatting and delivery
 """
 
+import sys
+import os
+# Add the parent directory to Python path so we can import mcp_server
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import threading
 import time
 from pythonosc import dispatcher

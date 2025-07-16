@@ -2,6 +2,11 @@
 Unit tests for OSC client
 """
 
+import sys
+import os
+# Add the parent directory to Python path so we can import mcp_server
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pytest
 from unittest.mock import Mock, patch
 from mcp_server.osc_client import OSCClient, get_osc_client, reset_osc_client

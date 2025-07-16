@@ -272,6 +272,175 @@ class OSCClient:
         """
         return self.send_message(f"/strip/{track_index}/sends", 1)
     
+    # Plugin Discovery Commands
+    def list_track_plugins(self, track_index: int) -> bool:
+        """List all plugins on a specific track
+        
+        Args:
+            track_index: Track index (0-based)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # First select the track, then request plugin list
+        self.send_message("/select/strip", track_index)
+        return self.send_message("/select/plugin/list", 1)
+    
+    def get_plugin_parameters(self, track_index: int, plugin_id: int) -> bool:
+        """Get parameter list for a specific plugin
+        
+        Args:
+            track_index: Track index (0-based)
+            plugin_id: Plugin ID (0-based)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Select track and plugin, then request parameters
+        self.send_message("/select/strip", track_index)
+        self.send_message("/select/plugin", plugin_id)
+        return self.send_message("/select/plugin/parameters", 1)
+    
+    def get_plugin_info(self, track_index: int, plugin_id: int) -> bool:
+        """Get detailed information about a specific plugin
+        
+        Args:
+            track_index: Track index (0-based)
+            plugin_id: Plugin ID (0-based)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Select track and plugin, then request info
+        self.send_message("/select/strip", track_index)
+        self.send_message("/select/plugin", plugin_id)
+        return self.send_message("/select/plugin/name", 1)
+    
+    def scan_all_plugins(self) -> bool:
+        """Scan all tracks for plugins
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Request comprehensive plugin scan
+        # This would trigger a series of OSC messages to discover all plugins
+        return self.send_message("/strip/list", 1)
+    
+    def select_track_and_plugin(self, track_index: int, plugin_id: int) -> bool:
+        """Select a specific track and plugin for subsequent operations
+        
+        Args:
+            track_index: Track index (0-based)
+            plugin_id: Plugin ID (0-based)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        success1 = self.send_message("/select/strip", track_index)
+        success2 = self.send_message("/select/plugin", plugin_id)
+        return success1 and success2
+    
+    def set_plugin_activate(self, track_index: int, plugin_id: int, active: bool) -> bool:
+        """Activate or bypass a plugin
+        
+        Args:
+            track_index: Track index (0-based)
+            plugin_id: Plugin ID (0-based)
+            active: True to activate, False to bypass
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Select track and plugin first
+        self.send_message("/select/strip", track_index)
+        self.send_message("/select/plugin", plugin_id)
+        # Then activate/deactivate
+        return self.send_message("/select/plugin/activate", 1 if active else 0)
+    
+    def set_plugin_parameter(self, track_index: int, plugin_id: int, parameter_id: int, value: float) -> bool:
+        """Set a plugin parameter value
+        
+        Args:
+            track_index: Track index (0-based)
+            plugin_id: Plugin ID (0-based)
+            parameter_id: Parameter ID (1-based, as per Ardour OSC spec)
+            value: Parameter value (0.0 to 1.0)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Select track and plugin first
+        self.send_message("/select/strip", track_index)
+        self.send_message("/select/plugin", plugin_id)
+        # Then set parameter value
+        return self.send_message("/select/plugin/parameter", parameter_id, value)
+    
+    # Recording Control Commands
+    def set_recording_enable(self, enabled: bool) -> bool:
+        """Enable or disable global recording
+        
+        Args:
+            enabled: True to enable recording, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/rec_enable_toggle", 1 if enabled else 0)
+    
+    def set_punch_in(self, enabled: bool) -> bool:
+        """Enable or disable punch-in recording
+        
+        Args:
+            enabled: True to enable punch-in, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/toggle_punch_in", 1 if enabled else 0)
+    
+    def set_punch_out(self, enabled: bool) -> bool:
+        """Enable or disable punch-out recording
+        
+        Args:
+            enabled: True to enable punch-out, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/toggle_punch_out", 1 if enabled else 0)
+    
+    def set_global_input_monitor(self, enabled: bool) -> bool:
+        """Enable or disable global input monitoring
+        
+        Args:
+            enabled: True to enable input monitoring, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/toggle_monitor_input", 1 if enabled else 0)
+    
+    def set_track_input_monitor(self, track_index: int, enabled: bool) -> bool:
+        """Enable or disable input monitoring for specific track
+        
+        Args:
+            track_index: Track index (0-based)
+            enabled: True to enable input monitoring, False to disable
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message(f"/strip/{track_index}/monitor_input", 1 if enabled else 0)
+    
+    def get_recording_status(self) -> bool:
+        """Get current recording status
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # Request recording status information
+        return self.send_message("/recording/status", 1)
+    
     # Session Management Commands
     def open_add_track_dialog(self) -> bool:
         """Open Ardour's Add Track/Bus dialog

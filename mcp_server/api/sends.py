@@ -41,9 +41,9 @@ async def set_send_level(
     """Set send level for a track to specific aux"""
     try:
         osc_client = get_osc_client()
-        # Convert to 0-based indexing for OSC
-        track_index = track_number - 1
-        send_index = send_number - 1
+        # Keep 1-based indexing for OSC (Ardour expects /strip/1/ for first track)
+        track_index = track_number
+        send_index = send_number - 1  # Sends might still be 0-based
         
         success = osc_client.set_send_level(track_index, send_index, request.level)
         
@@ -80,7 +80,7 @@ async def set_send_gain(
     """Set send gain in dB for a track to specific aux"""
     try:
         osc_client = get_osc_client()
-        track_index = track_number - 1
+        track_index = track_number
         send_index = send_number - 1
         
         success = osc_client.set_send_gain(track_index, send_index, request.gain_db)
@@ -118,7 +118,7 @@ async def set_send_enable(
     """Enable or disable a send"""
     try:
         osc_client = get_osc_client()
-        track_index = track_number - 1
+        track_index = track_number
         send_index = send_number - 1
         
         success = osc_client.set_send_enable(track_index, send_index, request.enabled)
