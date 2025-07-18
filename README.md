@@ -12,10 +12,13 @@
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
 [![OSC](https://img.shields.io/badge/OSC-Protocol-orange?style=flat-square)](https://opensoundcontrol.org)
 [![License](https://img.shields.io/badge/License-Personal%2FCommercial-blue?style=flat-square)](#-license)
+[![Status](https://img.shields.io/badge/Status-In_Development-yellow?style=flat-square)](https://github.com/your-repo/issues)
 
 *A powerful FastAPI-based MCP (Model Context Protocol) server that bridges MCP clients with Ardour DAW, enabling comprehensive remote control through HTTP API endpoints that seamlessly translate to OSC messages.*
 
 </div>
+
+> **⚠️ DEVELOPMENT STATUS**: This project is actively under development. While core features are functional, some functionalities may not work perfectly or may be incomplete. We welcome feedback, bug reports, and contributions!
 
 ## 📋 Table of Contents
 
@@ -65,6 +68,34 @@
 - **🔧 Flexible Configuration**: Environment-based configuration management
 
 </details>
+
+---
+
+## 🚧 Development Status & Roadmap
+
+<div align="center">
+<img src="https://img.shields.io/badge/Phase-Active_Development-orange?style=for-the-badge" alt="Development Phase">
+</div>
+
+### ✅ Working Features
+- ✅ **Core Transport Control** - Play, stop, rewind, fast-forward
+- ✅ **Basic Track Operations** - Fader, mute, solo controls
+- ✅ **MCP Integration** - Cursor AI ready functionality
+- ✅ **Docker Support** - Containerized deployment
+
+### 🔄 In Progress
+- 🔄 **Plugin Control** - Advanced parameter mapping and discovery
+- 🔄 **Recording Features** - Per-track recording and monitoring
+- 🔄 **Selection Management** - Multi-track selection operations
+- 🔄 **Real-time Feedback** - Live parameter updates from Ardour
+
+### 🎯 Planned Features
+- 🎯 **Advanced Plugin Control** - Smart parameter conversion
+- 🎯 **Sends & Routing** - Aux send and bus management
+- 🎯 **Session Management** - Load, save, and manage Ardour sessions
+- 🎯 **Performance Optimization** - Enhanced OSC communication
+
+> **💡 Want to contribute?** Check out [PLUGIN_IMPLEMENTATION_PLAN.md](PLUGIN_IMPLEMENTATION_PLAN.md) for detailed development roadmap!
 
 ## 🚀 Quick Start
 
@@ -679,15 +710,37 @@ For commercial use, including but not limited to:
 
 ## 📞 Support & Community
 
-<img src="https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square" alt="Project Status">
+<img src="https://img.shields.io/badge/Status-Active_Development-orange?style=flat-square" alt="Project Status">
 
-**Need Help?** Follow these steps:
+**🚧 This project is under active development!** Some features may not work as expected.
+
+### 🐛 Found a Bug or Issue?
+
+**We want to hear from you!** Your feedback helps improve the project:
+
+1. **🔍 Check Existing Issues** - Search [GitHub Issues](https://github.com/your-repo/issues) first
+2. **📝 Create New Issue** - If not found, [open a new issue](https://github.com/your-repo/issues/new) with:
+   - 🎯 Clear description of the problem
+   - 🔄 Steps to reproduce
+   - 💻 Your environment (OS, Python version, Ardour version)
+   - 📊 Relevant log output from `ardour_mcp.log`
+   - 📋 Expected vs actual behavior
+
+### 💡 Need Help?
+
+**Before reporting issues, try these steps:**
 
 1. 📖 **Check Documentation** - Review this README and `/docs`
-2. 🔍 **Browse Issues** - Search existing GitHub issues
-3. 🌐 **API Docs** - Visit `http://localhost:8000/docs` for interactive API documentation
-4. 📝 **Check Logs** - Review `ardour_mcp.log` for detailed error information
-5. 🐛 **Report Issues** - Open a new GitHub issue with detailed information
+2. 🌐 **API Docs** - Visit `http://localhost:8000/docs` for interactive API documentation
+3. 📝 **Check Logs** - Review `ardour_mcp.log` for detailed error information
+4. 🧪 **Run Tests** - Try `python -m pytest tests/` to identify issues
+
+### 🎯 Feature Requests
+
+Have ideas for new features? We'd love to hear them! Please [create a feature request](https://github.com/Ron-312/ardour-mcp/issues/new) with:
+- 🎵 Your use case and workflow
+- 🎛️ Detailed description of the desired functionality
+- 🎯 How it would improve your DAW control experience
 
 ---
 
