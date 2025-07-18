@@ -1,25 +1,113 @@
-# Ardour MCP Server
+<div align="center">
 
-A FastAPI-based MCP (Model Context Protocol) server for controlling Ardour DAW via OSC messages. This project provides a bridge between MCP clients and Ardour DAW, allowing remote control of transport and track functions through HTTP API endpoints that translate to OSC messages.
+# 🎵 Ardour MCP Server
 
-## 🎯 Features
+<img src="https://img.shields.io/badge/Ardour-DAW_Control-ff6b35?style=for-the-badge&logo=ardour&logoColor=white" alt="Ardour DAW Control">
 
-- **Transport Control**: Play, stop, rewind, fast-forward
-- **Track Control**: Fader levels, mute, solo for individual tracks
-- **OSC Integration**: Direct communication with Ardour via UDP port 3819
-- **HTTP API**: RESTful endpoints for all DAW functions
-- **MCP Client**: Command-line tool with manifest generation
-- **Robust Logging**: Comprehensive request/response logging
-- **Error Handling**: Proper HTTP status codes and error responses
-- **Docker Support**: Containerized deployment with Docker Compose
+**Professional MCP Server for Ardour DAW Remote Control**
+
+[![Python](https://img.shields.io/badge/Python-3.7+-blue?style=flat-square&logo=python&logoColor=white)](https://python.org)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Framework-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![Cursor](https://img.shields.io/badge/Cursor-AI_Ready-6366f1?style=flat-square&logo=cursor&logoColor=white)](https://cursor.sh)
+[![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
+[![OSC](https://img.shields.io/badge/OSC-Protocol-orange?style=flat-square)](https://opensoundcontrol.org)
+[![License](https://img.shields.io/badge/License-Personal%2FCommercial-blue?style=flat-square)](#-license)
+
+*A powerful FastAPI-based MCP (Model Context Protocol) server that bridges MCP clients with Ardour DAW, enabling comprehensive remote control through HTTP API endpoints that seamlessly translate to OSC messages.*
+
+</div>
+
+## 📋 Table of Contents
+
+- [✨ Features](#-features)
+- [🚀 Quick Start](#-quick-start)
+- [📖 Usage](#-usage)
+- [🔧 Configuration](#-configuration)
+- [📚 API Reference](#-api-reference)
+- [🐳 Docker Deployment](#-docker-deployment)
+- [🧪 Testing](#-testing)
+- [📁 Project Structure](#-project-structure)
+- [🔍 Troubleshooting](#-troubleshooting)
+
+---
+
+## ✨ Features
+
+<details>
+<summary><b>🎛️ Core DAW Control</b></summary>
+
+- **🎵 Transport Control**: Play, stop, rewind, fast-forward, record
+- **🎚️ Track Management**: Fader levels, mute, solo, record-enable for individual tracks
+- **🔌 Plugin Control**: Comprehensive plugin discovery, parameter mapping, and real-time control
+- **📼 Recording Features**: Master recording, punch recording, input monitoring
+- **🎯 Selection Management**: Advanced track selection and group operations
+
+</details>
+
+<details>
+<summary><b>🔗 Integration & Communication</b></summary>
+
+- **📡 OSC Integration**: Direct bi-directional communication with Ardour via UDP
+- **🌐 HTTP API**: RESTful endpoints with comprehensive OpenAPI documentation
+- **🤖 MCP Protocol**: Full Model Context Protocol implementation with client tools
+- **🎯 Cursor AI Ready**: Instant integration with Cursor's AI agent - no setup required
+- **📊 Real-time Feedback**: Live parameter updates and status monitoring
+
+</details>
+
+<details>
+<summary><b>🏗️ Architecture & Deployment</b></summary>
+
+- **⚡ FastAPI Framework**: High-performance async web framework
+- **🐳 Docker Support**: Complete containerized deployment with Docker Compose
+- **📝 Comprehensive Logging**: Structured logging with configurable levels
+- **🛡️ Error Handling**: Robust error handling with proper HTTP status codes
+- **🔧 Flexible Configuration**: Environment-based configuration management
+
+</details>
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### 🎯 Instant Setup with Cursor AI
+
+<div align="center">
+<img src="https://img.shields.io/badge/Cursor-AI_Ready-6366f1?style=for-the-badge&logo=cursor&logoColor=white" alt="Cursor AI Ready">
+</div>
+
+**Fastest way to get started!** If you're using [Cursor](https://cursor.sh/), you can immediately access Ardour MCP functionality:
+
+1. **🚀 Clone & Open:**
+   ```bash
+   git clone <repository-url>
+   cd ardour-mcp
+   cursor .
+   ```
+
+2. **🤖 Activate Cursor Agent:**
+   - Open Cursor's AI chat panel (`Cmd/Ctrl + L`)
+   - The MCP client is automatically available to the AI agent
+   - Start controlling Ardour directly through natural language!
+
+3. **🎵 Example Cursor Commands:**
+   ```
+   "Start playback in Ardour"
+   "Set track 1 fader to -6dB" 
+   "Mute track 2 and solo track 3"
+   "List all plugins on track 1"
+   "Enable recording on track 4"
+   ```
+
+> **💡 Pro Tip:** Cursor's AI agent automatically discovers and uses the MCP tools defined in `mcp_client/mcp_ardour.json` - no additional setup required!
+
+---
+
+### 📦 Traditional Installation
+
+#### Prerequisites
 
 - Python 3.7+
 - Ardour DAW with OSC support enabled
-- Node.js (for MCP client usage)
+- Node.js (for standalone MCP client usage)
 
 ### Installation
 
@@ -115,7 +203,39 @@ curl -X POST "http://localhost:8000/track/3/solo" \
   -d '{"solo": true}'
 ```
 
-### Using the MCP Client
+### 🤖 Using with Cursor AI (Recommended)
+
+Once you have the project open in Cursor and the server running:
+
+1. **🎵 Natural Language Control:**
+   ```
+   "Start playback"
+   "Stop recording" 
+   "Set track 1 volume to -10dB"
+   "Mute tracks 2 and 3"
+   "Solo track 4"
+   "List all plugins on track 1"
+   "Bypass the compressor on track 2"
+   ```
+
+2. **🔧 Advanced Operations:**
+   ```
+   "Enable recording on track 5 and start playback"
+   "Set all tracks to -6dB except track 1"
+   "Show me the current transport status"
+   "What plugins are active on track 3?"
+   ```
+
+3. **🎛️ Plugin Control:**
+   ```
+   "Adjust the compressor threshold on track 1 to -12dB"
+   "Turn off the reverb on track 2" 
+   "Show me all EQ parameters on track 3"
+   ```
+
+> **💡 Why Cursor?** The AI automatically understands the MCP protocol and can execute complex DAW operations through natural conversation!
+
+### 🛠️ Using the Standalone MCP Client
 
 ```bash
 # View available tools and manifest
@@ -157,22 +277,77 @@ For custom setups, you can modify `mcp_server/config.py` to add additional setti
 
 ## 📚 API Reference
 
-### Transport Endpoints
+<details>
+<summary><b>🎵 Transport Control</b></summary>
 
 | Method | Endpoint | Description | Request Body |
 |--------|----------|-------------|--------------|
 | POST | `/transport/play` | Start playback | None |
 | POST | `/transport/stop` | Stop playback | None |
-| GET | `/` | Server info | None |
-| GET | `/health` | Health check | None |
+| POST | `/transport/rewind` | Rewind to beginning | None |
+| POST | `/transport/fast_forward` | Fast forward | None |
+| GET | `/transport/status` | Get transport status | None |
 
-### Track Endpoints
+</details>
+
+<details>
+<summary><b>🎚️ Track Control</b></summary>
 
 | Method | Endpoint | Description | Request Body |
 |--------|----------|-------------|--------------|
 | POST | `/track/{n}/fader` | Set track fader | `{"gain_db": -10.0}` |
 | POST | `/track/{n}/mute` | Mute/unmute track | `{"mute": true}` |
 | POST | `/track/{n}/solo` | Solo/unsolo track | `{"solo": true}` |
+| POST | `/track/{n}/record_enable` | Enable/disable recording | `{"enabled": true}` |
+| POST | `/track/{n}/input_monitoring` | Set input monitoring | `{"enabled": true}` |
+
+</details>
+
+<details>
+<summary><b>🔌 Plugin Control</b></summary>
+
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| GET | `/plugins/track/{n}/plugins` | List track plugins | None |
+| GET | `/plugins/track/{n}/plugin/{id}/parameters` | Get plugin parameters | None |
+| POST | `/plugins/track/{n}/plugin/{id}/parameter/{param}` | Set plugin parameter | `{"value": 0.5}` |
+| POST | `/plugins/track/{n}/plugin/{id}/bypass` | Bypass plugin | `{"bypassed": true}` |
+
+</details>
+
+<details>
+<summary><b>📼 Recording Control</b></summary>
+
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| POST | `/recording/enable` | Enable/disable global recording | `{"enabled": true}` |
+| POST | `/recording/punch` | Enable/disable punch recording | `{"enabled": true}` |
+| GET | `/recording/status` | Get recording status | None |
+
+</details>
+
+<details>
+<summary><b>🎯 Selection Management</b></summary>
+
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| POST | `/selection/track/{n}` | Select track | None |
+| POST | `/selection/clear` | Clear selection | None |
+| GET | `/selection/current` | Get current selection | None |
+
+</details>
+
+<details>
+<summary><b>🔄 Session & Sends</b></summary>
+
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| GET | `/session/info` | Get session information | None |
+| POST | `/sends/track/{n}/send/{id}` | Control track send | `{"level": 0.8}` |
+| GET | `/` | Server info | None |
+| GET | `/health` | Health check | None |
+
+</details>
 
 ### Request/Response Examples
 
@@ -282,35 +457,87 @@ python -m pytest tests/test_transport_api.py -v
 
 ## 📁 Project Structure
 
+<details>
+<summary><b>🏗️ Core Architecture</b></summary>
+
 ```
 ardour-mcp/
-├── mcp_server/                  # FastAPI server implementation
+├── 🎛️ mcp_server/                 # FastAPI server implementation
 │   ├── __init__.py
-│   ├── main.py                 # FastAPI application entry point
-│   ├── config.py               # Configuration management
-│   ├── osc_client.py           # OSC client for Ardour communication
-│   └── api/                    # API endpoints
+│   ├── main.py                   # FastAPI application entry point
+│   ├── config.py                 # Configuration management
+│   ├── osc_client.py            # OSC client for Ardour communication
+│   ├── osc_listener.py          # OSC feedback listener
+│   ├── parameter_conversion.py   # Smart parameter conversion
+│   ├── plugin_parameter_mapper.py # Plugin parameter mapping
+│   ├── selection_manager.py     # Track selection management
+│   └── 🌐 api/                   # API endpoints by feature
 │       ├── __init__.py
-│       ├── transport.py        # Transport control endpoints
-│       └── track.py            # Track control endpoints
-├── mcp_client/                  # MCP client implementation
-│   ├── ardour_mcp_client.py    # Main MCP client script
-│   └── mcp_ardour.json         # MCP manifest file
-├── tests/                       # Test files
-│   ├── __init__.py
-│   ├── test_config.py          # Configuration tests
-│   ├── test_osc_client.py      # OSC client tests
-│   └── test_transport_api.py   # API endpoint tests
-├── docs/                        # Documentation
-├── .env.example                 # Environment configuration template
-├── .env                         # Environment configuration (local)
-├── requirements.txt             # Python dependencies
-├── Dockerfile                   # Docker container configuration
-├── docker-compose.yml          # Docker Compose configuration
-├── test_osc_mock.py            # Mock OSC server for testing
-├── test_env.py                 # Environment testing script
-└── README.md                   # This file
+│       ├── transport.py         # Transport control endpoints
+│       ├── track.py            # Track control endpoints
+│       ├── plugins.py          # Plugin control endpoints
+│       ├── recording.py        # Recording control endpoints
+│       ├── selection.py        # Selection management endpoints
+│       ├── sends.py            # Sends/routing endpoints
+│       └── session.py          # Session management endpoints
 ```
+
+</details>
+
+<details>
+<summary><b>🤖 Client & Tools</b></summary>
+
+```
+├── 🤖 mcp_client/                # MCP client implementation
+│   ├── ardour_mcp_client.py     # Main MCP client script
+│   └── mcp_ardour.json          # MCP manifest file
+├── mcp_wrapper.py               # MCP wrapper utilities
+```
+
+</details>
+
+<details>
+<summary><b>🧪 Testing & Quality</b></summary>
+
+```
+├── 🧪 tests/                     # Comprehensive test suite
+│   ├── __init__.py
+│   ├── test_config.py           # Configuration tests
+│   ├── test_osc_client.py       # OSC client tests
+│   ├── test_transport_api.py    # Transport API tests
+│   ├── test_plugin_control.py   # Plugin control tests
+│   ├── test_recording_controls.py # Recording feature tests
+│   ├── test_selection_operations.py # Selection management tests
+│   ├── test_phase2_features.py  # Advanced feature tests
+│   ├── test_phase3_sends.py     # Sends/routing tests
+│   ├── debug_*.py              # Debug utilities
+│   ├── diagnose_server.py      # Server diagnostics
+│   ├── run_all_tests.py        # Test runner
+│   └── README.md               # Testing documentation
+```
+
+</details>
+
+<details>
+<summary><b>🐳 Deployment & Config</b></summary>
+
+```
+├── 🐳 Docker & Configuration
+│   ├── Dockerfile              # Docker container configuration
+│   ├── docker-compose.yml      # Docker Compose configuration
+│   ├── requirements.txt        # Python dependencies
+│   ├── .env.example           # Environment configuration template
+│   └── .env                   # Environment configuration (local)
+├── 📚 Documentation
+│   ├── docs/                  # Additional documentation
+│   ├── PLUGIN_IMPLEMENTATION_PLAN.md # Feature roadmap
+│   ├── README_TESTING.md      # Testing documentation
+│   └── README.md              # This file
+└── 📝 Logs & Utilities
+    └── ardour_mcp.log         # Application logs
+```
+
+</details>
 
 ## 🔍 Troubleshooting
 
@@ -373,32 +600,105 @@ View server logs:
 tail -f ardour_mcp.log
 ```
 
+---
+
+<div align="center">
+
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+We welcome contributions! Here's how to get started:
 
-## 📄 License
+</div>
 
-This project is licensed under the MIT License.
-
-## 🙏 Acknowledgments
-
-- Ardour DAW team for OSC support
-- FastAPI team for the excellent web framework
-- python-osc library for OSC communication
-
-## 📞 Support
-
-For issues and questions:
-1. Check the troubleshooting section above
-2. Review the API documentation at `http://localhost:8000/docs`
-3. Check server logs in `ardour_mcp.log`
-4. Open an issue in the repository
+1. **🍴 Fork** the repository
+2. **🌿 Create** a feature branch (`git checkout -b feature/amazing-feature`)
+3. **✨ Make** your changes with proper tests
+4. **✅ Test** your changes (`python -m pytest tests/`)
+5. **📝 Commit** your changes (`git commit -m 'Add amazing feature'`)
+6. **🚀 Push** to the branch (`git push origin feature/amazing-feature`)
+7. **📬 Open** a Pull Request
 
 ---
 
-**Happy music making with Ardour MCP Server! 🎵**
+<div align="center">
+
+## 📄 License
+
+<img src="https://img.shields.io/badge/License-Dual_License-4a90e2?style=for-the-badge" alt="Dual License">
+
+This project is available under a **dual licensing model**:
+
+### 🏠 Personal Use License
+**✅ FREE for personal, educational, and non-commercial use**
+
+- ✅ Personal music production and audio engineering
+- ✅ Educational purposes and learning
+- ✅ Non-profit organizations and community projects
+- ✅ Research and academic use
+- ✅ Open source contributions and modifications
+
+### 💼 Commercial Use License
+**📧 Permission required for commercial applications**
+
+For commercial use, including but not limited to:
+- 🏢 Commercial music production facilities
+- 🎬 Professional audio/video production companies
+- 🎵 Commercial plugin or software development
+- 💰 Revenue-generating services or products
+- 🏭 Integration into commercial products
+
+**Please contact the project maintainer for commercial licensing terms.**
+
+---
+
+**📧 Commercial License Inquiries:** [Contact for commercial licensing](ron9hm1@gmail.com)
+
+> **💡 Note:** Contributing to this project does not grant commercial usage rights. Commercial usage requires explicit written permission regardless of contribution status.
+
+## 🙏 Acknowledgments
+
+<table>
+<tr>
+<td align="center">
+<img src="https://img.shields.io/badge/Ardour-DAW-ff6b35?style=flat&logo=ardour" alt="Ardour"/>
+<br><b>Ardour DAW Team</b><br>
+<sub>OSC Protocol Support</sub>
+</td>
+<td align="center">
+<img src="https://img.shields.io/badge/FastAPI-Framework-009688?style=flat&logo=fastapi" alt="FastAPI"/>
+<br><b>FastAPI Team</b><br>
+<sub>Excellent Web Framework</sub>
+</td>
+<td align="center">
+<img src="https://img.shields.io/badge/Python-OSC-blue?style=flat&logo=python" alt="Python OSC"/>
+<br><b>python-osc</b><br>
+<sub>OSC Communication Library</sub>
+</td>
+</tr>
+</table>
+
+## 📞 Support & Community
+
+<img src="https://img.shields.io/badge/Status-Active-brightgreen?style=flat-square" alt="Project Status">
+
+**Need Help?** Follow these steps:
+
+1. 📖 **Check Documentation** - Review this README and `/docs`
+2. 🔍 **Browse Issues** - Search existing GitHub issues
+3. 🌐 **API Docs** - Visit `http://localhost:8000/docs` for interactive API documentation
+4. 📝 **Check Logs** - Review `ardour_mcp.log` for detailed error information
+5. 🐛 **Report Issues** - Open a new GitHub issue with detailed information
+
+---
+
+<div align="center">
+
+### 🎵 **Happy Music Making with Ardour MCP Server!** 🎵
+
+<img src="https://img.shields.io/badge/Made%20with-❤️-red?style=for-the-badge" alt="Made with Love">
+
+*Empowering musicians and audio engineers with seamless DAW control*
+
+</div>
+
+</div>

@@ -31,3 +31,5 @@ node_modules/
 *$py.class
 
 __pycache__
+.taskmaster
+.cursor/rules
