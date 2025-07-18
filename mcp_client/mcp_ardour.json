@@ -1,376 +1,1118 @@
 {
-  "name": "ardour-mcp",
-  "version": "1.0.0",
-  "description": "Model Context Protocol server for Ardour DAW control",
-  "tools": [
-    {
-      "name": "transport_play",
-      "description": "Start transport playback in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
+    "mcpProtocolVersion": "2024-11-05",
+    "mcpVersion": "2024-11-05",
+    "capabilities": {
+        "tools": {}
     },
-    {
-      "name": "transport_stop",
-      "description": "Stop transport playback in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
+    "server": {
+        "command": "python",
+        "args": ["mcp_client/ardour_mcp_client.py"],
+        "env": {}
     },
-    {
-      "name": "set_track_fader",
-      "description": "Set track fader level in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "track_number": {
-            "type": "integer",
-            "description": "Track number (1-based)",
-            "minimum": 1,
-            "maximum": 256
-          },
-          "gain_db": {
-            "type": "number",
-            "description": "Gain in decibels",
-            "minimum": -60.0,
-            "maximum": 20.0
-          }
+    "tools": [{
+            "name": "ardour_transport_play",
+            "description": "Start transport playback in Ardour DAW",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["track_number", "gain_db"]
-      }
-    },
-    {
-      "name": "set_track_mute",
-      "description": "Mute or unmute a track in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "track_number": {
-            "type": "integer",
-            "description": "Track number (1-based)",
-            "minimum": 1,
-            "maximum": 256
-          },
-          "mute": {
-            "type": "boolean",
-            "description": "True to mute, False to unmute"
-          }
+        {
+            "name": "ardour_transport_stop",
+            "description": "Stop transport playback in Ardour DAW",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["track_number", "mute"]
-      }
-    },
-    {
-      "name": "set_track_solo",
-      "description": "Solo or unsolo a track in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "track_number": {
-            "type": "integer",
-            "description": "Track number (1-based)",
-            "minimum": 1,
-            "maximum": 256
-          },
-          "solo": {
-            "type": "boolean",
-            "description": "True to solo, False to unsolo"
-          }
+        {
+            "name": "ardour_transport_rewind",
+            "description": "Rewind transport to beginning in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["track_number", "solo"]
-      }
-    },
-    {
-      "name": "set_track_name",
-      "description": "Set the name of a track in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "track_number": {
-            "type": "integer",
-            "description": "Track number (1-based)",
-            "minimum": 1,
-            "maximum": 256
-          },
-          "name": {
-            "type": "string",
-            "description": "New name for the track",
-            "minLength": 1,
-            "maxLength": 100
-          }
+        {
+            "name": "ardour_transport_fast_forward",
+            "description": "Fast forward transport in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["track_number", "name"]
-      }
-    },
-    {
-      "name": "set_track_record_enable",
-      "description": "Enable or disable recording for a track in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "track_number": {
-            "type": "integer",
-            "description": "Track number (1-based)",
-            "minimum": 1,
-            "maximum": 256
-          },
-          "enabled": {
-            "type": "boolean",
-            "description": "True to enable recording, False to disable"
-          }
+        {
+            "name": "ardour_transport_goto_start",
+            "description": "Move playhead to start of session in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["track_number", "enabled"]
-      }
-    },
-    {
-      "name": "set_track_record_safe",
-      "description": "Enable or disable record safe mode for a track in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "track_number": {
-            "type": "integer",
-            "description": "Track number (1-based)",
-            "minimum": 1,
-            "maximum": 256
-          },
-          "safe": {
-            "type": "boolean",
-            "description": "True to enable record safe, False to disable"
-          }
+        {
+            "name": "ardour_transport_goto_end",
+            "description": "Move playhead to end of session in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["track_number", "safe"]
-      }
-    },
-    {
-      "name": "set_track_pan",
-      "description": "Set the pan position of a track in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "track_number": {
-            "type": "integer",
-            "description": "Track number (1-based)",
-            "minimum": 1,
-            "maximum": 256
-          },
-          "pan_position": {
-            "type": "number",
-            "description": "Pan position (-1.0 = full left, 0.0 = center, 1.0 = full right)",
-            "minimum": -1.0,
-            "maximum": 1.0
-          }
+        {
+            "name": "ardour_transport_toggle_roll",
+            "description": "Toggle between play and stop in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["track_number", "pan_position"]
-      }
-    },
-    {
-      "name": "list_tracks",
-      "description": "Get a list of all tracks and buses in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_rewind",
-      "description": "Rewind transport to beginning in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_fast_forward",
-      "description": "Fast forward transport in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_goto_start",
-      "description": "Move playhead to start in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_goto_end",
-      "description": "Move playhead to end in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_toggle_roll",
-      "description": "Toggle between play and stop in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_toggle_loop",
-      "description": "Toggle loop mode in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_set_speed",
-      "description": "Set transport speed in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "speed": {
-            "type": "number",
-            "description": "Speed multiplier (-8.0 to 8.0, 1.0 = normal speed)",
-            "minimum": -8.0,
-            "maximum": 8.0
-          }
+        {
+            "name": "ardour_transport_toggle_loop",
+            "description": "Toggle loop mode in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         },
-        "required": ["speed"]
-      }
-    },
-    {
-      "name": "transport_add_marker",
-      "description": "Add marker at current position in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_next_marker",
-      "description": "Go to next marker in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "transport_prev_marker",
-      "description": "Go to previous marker in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "session_open_add_track_dialog",
-      "description": "Open Ardour's Add Track/Bus dialog",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "session_save",
-      "description": "Save current session in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "session_save_as",
-      "description": "Open Save Session As dialog in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "session_create_snapshot",
-      "description": "Create a session snapshot in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {
-          "switch_to_new": {
-            "type": "boolean",
-            "description": "Switch to new snapshot after creation",
-            "default": false
-          }
+        {
+            "name": "ardour_transport_set_speed",
+            "description": "Set transport speed in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "speed": {
+                        "type": "number",
+                        "description": "Speed multiplier (-8.0 to 8.0, 1.0 = normal speed)",
+                        "minimum": -8.0,
+                        "maximum": 8.0
+                    }
+                },
+                "required": ["speed"]
+            }
         },
-        "required": []
-      }
-    },
-    {
-      "name": "session_undo",
-      "description": "Undo last action in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    },
-    {
-      "name": "session_redo",
-      "description": "Redo last action in Ardour",
-      "inputSchema": {
-        "type": "object",
-        "properties": {},
-        "required": []
-      }
-    }
-  ],
-  "resources": [
-    {
-      "uri": "ardour://status",
-      "name": "Ardour Status",
-      "description": "Current status of Ardour DAW",
-      "mimeType": "application/json"
-    }
-  ],
-  "server": {
-    "baseUrl": "http://localhost:8000",
-    "endpoints": {
-      "transport_play": "/transport/play",
-      "transport_stop": "/transport/stop",
-      "set_track_fader": "/track/{track_number}/fader",
-      "set_track_mute": "/track/{track_number}/mute",
-      "set_track_solo": "/track/{track_number}/solo",
-      "set_track_name": "/track/{track_number}/name",
-      "set_track_record_enable": "/track/{track_number}/record-enable",
-      "set_track_record_safe": "/track/{track_number}/record-safe",
-      "set_track_pan": "/track/{track_number}/pan",
-      "list_tracks": "/track/list",
-      "transport_rewind": "/transport/rewind",
-      "transport_fast_forward": "/transport/fast-forward",
-      "transport_goto_start": "/transport/goto-start",
-      "transport_goto_end": "/transport/goto-end",
-      "transport_toggle_roll": "/transport/toggle-roll",
-      "transport_toggle_loop": "/transport/toggle-loop",
-      "transport_set_speed": "/transport/speed",
-      "transport_add_marker": "/transport/add-marker",
-      "transport_next_marker": "/transport/next-marker",
-      "transport_prev_marker": "/transport/prev-marker",
-      "session_open_add_track_dialog": "/session/add-track-dialog",
-      "session_save": "/session/save",
-      "session_save_as": "/session/save-as",
-      "session_create_snapshot": "/session/snapshot",
-      "session_undo": "/session/undo",
-      "session_redo": "/session/redo"
-    }
-  }
+        {
+            "name": "ardour_transport_add_marker",
+            "description": "Add marker at current position in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_transport_next_marker",
+            "description": "Go to next marker in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_transport_prev_marker",
+            "description": "Go to previous marker in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_track_set_fader",
+            "description": "Set track fader level in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "track_number": {
+                        "type": "integer",
+                        "description": "Track number (1-based)",
+                        "minimum": 1,
+                        "maximum": 256
+                    },
+                    "gain_db": {
+                        "type": "number",
+                        "description": "Gain in decibels",
+                        "minimum": -60.0,
+                        "maximum": 20.0
+                    }
+                },
+                "required": ["track_number", "gain_db"]
+            }
+        },
+        {
+            "name": "ardour_track_set_mute",
+            "description": "Mute or unmute a track in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "track_number": {
+                        "type": "integer",
+                        "description": "Track number (1-based)",
+                        "minimum": 1,
+                        "maximum": 256
+                    },
+                    "mute": {
+                        "type": "boolean",
+                        "description": "True to mute, False to unmute"
+                    }
+                },
+                "required": ["track_number", "mute"]
+            }
+        },
+        {
+            "name": "ardour_track_set_solo",
+            "description": "Solo or unsolo a track in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "track_number": {
+                        "type": "integer",
+                        "description": "Track number (1-based)",
+                        "minimum": 1,
+                        "maximum": 256
+                    },
+                    "solo": {
+                        "type": "boolean",
+                        "description": "True to solo, False to unsolo"
+                    }
+                },
+                "required": ["track_number", "solo"]
+            }
+        },
+        {
+            "name": "ardour_track_set_name",
+            "description": "Set the name of a track in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "track_number": {
+                        "type": "integer",
+                        "description": "Track number (1-based)",
+                        "minimum": 1,
+                        "maximum": 256
+                    },
+                    "name": {
+                        "type": "string",
+                        "description": "New name for the track",
+                        "minLength": 1,
+                        "maxLength": 100
+                    }
+                },
+                "required": ["track_number", "name"]
+            }
+        },
+        {
+            "name": "ardour_track_set_record_enable",
+            "description": "Enable or disable recording for a track in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "track_number": {
+                        "type": "integer",
+                        "description": "Track number (1-based)",
+                        "minimum": 1,
+                        "maximum": 256
+                    },
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable recording, False to disable"
+                    }
+                },
+                "required": ["track_number", "enabled"]
+            }
+        },
+        {
+            "name": "ardour_track_set_record_safe",
+            "description": "Enable or disable record safe mode for a track in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "track_number": {
+                        "type": "integer",
+                        "description": "Track number (1-based)",
+                        "minimum": 1,
+                        "maximum": 256
+                    },
+                    "safe": {
+                        "type": "boolean",
+                        "description": "True to enable record safe, False to disable"
+                    }
+                },
+                "required": ["track_number", "safe"]
+            }
+        },
+        {
+            "name": "ardour_track_set_pan",
+            "description": "Set the pan position of a track in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "track_number": {
+                        "type": "integer",
+                        "description": "Track number (1-based)",
+                        "minimum": 1,
+                        "maximum": 256
+                    },
+                    "pan_position": {
+                        "type": "number",
+                        "description": "Pan position (-1.0 = full left, 0.0 = center, 1.0 = full right)",
+                        "minimum": -1.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["track_number", "pan_position"]
+            }
+        },
+        {
+            "name": "ardour_track_list",
+            "description": "Get a list of all tracks and buses in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_session_open_add_track_dialog",
+            "description": "Open Ardour's Add Track/Bus dialog",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_session_save",
+            "description": "Save current session in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_session_save_as",
+            "description": "Open Save Session As dialog in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_session_create_snapshot",
+            "description": "Create a session snapshot in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "switch_to_new": {
+                        "type": "boolean",
+                        "description": "Switch to new snapshot after creation",
+                        "default": false
+                    }
+                },
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_session_undo",
+            "description": "Undo last action in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_session_redo",
+            "description": "Redo last action in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_select_strip",
+            "description": "Select a strip (track) in Ardour for subsequent operations",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "strip_id": {
+                        "type": "integer",
+                        "description": "Strip ID to select",
+                        "minimum": 0
+                    },
+                    "select": {
+                        "type": "boolean",
+                        "description": "True to select, False ignored",
+                        "default": true
+                    }
+                },
+                "required": ["strip_id"]
+            }
+        },
+        {
+            "name": "ardour_expand_strip",
+            "description": "Expand or contract a strip in Ardour",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "strip_id": {
+                        "type": "integer",
+                        "description": "Strip ID to expand",
+                        "minimum": 0
+                    },
+                    "expand": {
+                        "type": "boolean",
+                        "description": "True to expand, False to contract",
+                        "default": true
+                    }
+                },
+                "required": ["strip_id"]
+            }
+        },
+        {
+            "name": "ardour_set_expansion_mode",
+            "description": "Set expansion mode for strip operations",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "expand": {
+                        "type": "boolean",
+                        "description": "True for expanded mode, False for select mode"
+                    }
+                },
+                "required": ["expand"]
+            }
+        },
+        {
+            "name": "ardour_hide_strip",
+            "description": "Hide or show the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "hide": {
+                        "type": "boolean",
+                        "description": "True to hide, False to show"
+                    }
+                },
+                "required": ["hide"]
+            }
+        },
+        {
+            "name": "ardour_set_strip_name",
+            "description": "Set the name of the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Strip name",
+                        "minLength": 1,
+                        "maxLength": 100
+                    }
+                },
+                "required": ["name"]
+            }
+        },
+        {
+            "name": "ardour_set_strip_comment",
+            "description": "Set a comment for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "comment": {
+                        "type": "string",
+                        "description": "Strip comment",
+                        "maxLength": 500
+                    }
+                },
+                "required": ["comment"]
+            }
+        },
+        {
+            "name": "ardour_set_strip_group",
+            "description": "Assign the selected strip to a group",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "group_name": {
+                        "type": "string",
+                        "description": "Group name (use 'none' to remove from group)",
+                        "maxLength": 100
+                    }
+                },
+                "required": ["group_name"]
+            }
+        },
+        {
+            "name": "ardour_set_group_enable",
+            "description": "Enable or disable group functionality",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_gain",
+            "description": "Enable or disable group gain sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_relative",
+            "description": "Enable or disable group relative mode",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_mute",
+            "description": "Enable or disable group mute sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_solo",
+            "description": "Enable or disable group solo sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_recenable",
+            "description": "Enable or disable group record enable sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_select",
+            "description": "Enable or disable group select sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_active",
+            "description": "Enable or disable group active sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_color",
+            "description": "Enable or disable group color sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_group_monitoring",
+            "description": "Enable or disable group monitoring sharing",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "type": "integer",
+                        "description": "Group state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["state"]
+            }
+        },
+        {
+            "name": "ardour_set_recenable",
+            "description": "Enable or disable recording for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable recording, False to disable"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_record_safe",
+            "description": "Enable or disable record safe mode for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable record safe, False to disable"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_mute",
+            "description": "Mute or unmute the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to mute, False to unmute"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_solo",
+            "description": "Solo or unsolo the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to solo, False to unsolo"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_solo_iso",
+            "description": "Enable or disable solo isolate for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable solo isolate, False to disable"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_solo_safe",
+            "description": "Enable or disable solo safe for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable solo safe, False to disable"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_monitor_input",
+            "description": "Enable or disable input monitoring for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable input monitoring, False to disable"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_monitor_disk",
+            "description": "Enable or disable disk monitoring for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable disk monitoring, False to disable"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_polarity",
+            "description": "Invert or restore polarity for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to invert polarity, False to restore"
+                    }
+                },
+                "required": ["enabled"]
+            }
+        },
+        {
+            "name": "ardour_set_gain",
+            "description": "Set gain level for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "gain_db": {
+                        "type": "number",
+                        "description": "Gain in decibels",
+                        "minimum": -193.0,
+                        "maximum": 6.0
+                    }
+                },
+                "required": ["gain_db"]
+            }
+        },
+        {
+            "name": "ardour_set_fader",
+            "description": "Set fader position for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "position": {
+                        "type": "number",
+                        "description": "Fader position (0.0 = off, 1.0 = unity)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["position"]
+            }
+        },
+        {
+            "name": "ardour_set_db_delta",
+            "description": "Adjust gain by delta amount for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "delta": {
+                        "type": "number",
+                        "description": "Gain delta in decibels"
+                    }
+                },
+                "required": ["delta"]
+            }
+        },
+        {
+            "name": "ardour_set_trim",
+            "description": "Set trim level for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "trim_db": {
+                        "type": "number",
+                        "description": "Trim in decibels",
+                        "minimum": -20.0,
+                        "maximum": 20.0
+                    }
+                },
+                "required": ["trim_db"]
+            }
+        },
+        {
+            "name": "ardour_set_pan_stereo_position",
+            "description": "Set stereo pan position for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "position": {
+                        "type": "number",
+                        "description": "Pan position (0.0 = left, 0.5 = center, 1.0 = right)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["position"]
+            }
+        },
+        {
+            "name": "ardour_set_pan_stereo_width",
+            "description": "Set stereo width for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "position": {
+                        "type": "number",
+                        "description": "Width position (0.0 = mono, 1.0 = full stereo)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["position"]
+            }
+        },
+        {
+            "name": "ardour_set_pan_elevation_position",
+            "description": "Set elevation pan position for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "position": {
+                        "type": "number",
+                        "description": "Elevation position (0.0 = down, 0.5 = center, 1.0 = up)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["position"]
+            }
+        },
+        {
+            "name": "ardour_set_pan_frontback_position",
+            "description": "Set front/back pan position for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "position": {
+                        "type": "number",
+                        "description": "Front/back position (0.0 = back, 0.5 = center, 1.0 = front)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["position"]
+            }
+        },
+        {
+            "name": "ardour_set_pan_lfe_control",
+            "description": "Set LFE control for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "position": {
+                        "type": "number",
+                        "description": "LFE control (0.0 = off, 1.0 = full)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["position"]
+            }
+        },
+        {
+            "name": "ardour_set_send_gain",
+            "description": "Set send gain for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "send_id": {
+                        "type": "integer",
+                        "description": "Send ID",
+                        "minimum": 0
+                    },
+                    "gain_db": {
+                        "type": "number",
+                        "description": "Send gain in decibels",
+                        "minimum": -193.0,
+                        "maximum": 6.0
+                    }
+                },
+                "required": ["send_id", "gain_db"]
+            }
+        },
+        {
+            "name": "ardour_set_send_fader",
+            "description": "Set send fader for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "send_id": {
+                        "type": "integer",
+                        "description": "Send ID",
+                        "minimum": 0
+                    },
+                    "position": {
+                        "type": "number",
+                        "description": "Send fader position (0.0 = off, 1.0 = unity)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["send_id", "position"]
+            }
+        },
+        {
+            "name": "ardour_set_send_enable",
+            "description": "Enable or disable a send for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "send_id": {
+                        "type": "integer",
+                        "description": "Send ID",
+                        "minimum": 0
+                    },
+                    "enabled": {
+                        "type": "boolean",
+                        "description": "True to enable send, False to disable"
+                    }
+                },
+                "required": ["send_id", "enabled"]
+            }
+        },
+        {
+            "name": "ardour_select_plugin",
+            "description": "Select a plugin on the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "delta": {
+                        "type": "integer",
+                        "description": "Plugin delta (-8 to 8)",
+                        "minimum": -8,
+                        "maximum": 8
+                    }
+                },
+                "required": ["delta"]
+            }
+        },
+        {
+            "name": "ardour_set_plugin_page",
+            "description": "Navigate plugin pages on the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "direction": {
+                        "type": "integer",
+                        "description": "Page direction (1 for up, -1 for down)",
+                        "minimum": -1,
+                        "maximum": 1
+                    }
+                },
+                "required": ["direction"]
+            }
+        },
+        {
+            "name": "ardour_set_plugin_activate",
+            "description": "Activate or bypass the selected plugin",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "active": {
+                        "type": "boolean",
+                        "description": "True to activate plugin, False to bypass"
+                    }
+                },
+                "required": ["active"]
+            }
+        },
+        {
+            "name": "ardour_set_plugin_parameter",
+            "description": "Set a parameter value for the selected plugin",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "parameter_id": {
+                        "type": "integer",
+                        "description": "Parameter ID (1-based)",
+                        "minimum": 1
+                    },
+                    "value": {
+                        "type": "number",
+                        "description": "Parameter value (0.0 to 1.0)",
+                        "minimum": 0.0,
+                        "maximum": 1.0
+                    }
+                },
+                "required": ["parameter_id", "value"]
+            }
+        },
+        {
+            "name": "ardour_set_vca",
+            "description": "Set VCA state for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "VCA name",
+                        "maxLength": 100
+                    },
+                    "state": {
+                        "type": "integer",
+                        "description": "VCA state (0 = disabled, 1 = enabled)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["name", "state"]
+            }
+        },
+        {
+            "name": "ardour_toggle_vca",
+            "description": "Toggle VCA state for the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "VCA name",
+                        "maxLength": 100
+                    }
+                },
+                "required": ["name"]
+            }
+        },
+        {
+            "name": "ardour_spill_strips",
+            "description": "Spill strips to show all strips in the current group",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_set_automation",
+            "description": "Set automation mode for a control on the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "control_name": {
+                        "type": "string",
+                        "description": "Control name (gain, mute, solo, etc.)",
+                        "maxLength": 50
+                    },
+                    "mode": {
+                        "type": "integer",
+                        "description": "Automation mode (0-3)",
+                        "minimum": 0,
+                        "maximum": 3
+                    }
+                },
+                "required": ["control_name", "mode"]
+            }
+        },
+        {
+            "name": "ardour_set_touch",
+            "description": "Set touch state for a control on the selected strip",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "control_name": {
+                        "type": "string",
+                        "description": "Control name (gain, mute, solo, etc.)",
+                        "maxLength": 50
+                    },
+                    "state": {
+                        "type": "integer",
+                        "description": "Touch state (0 = off, 1 = on)",
+                        "minimum": 0,
+                        "maximum": 1
+                    }
+                },
+                "required": ["control_name", "state"]
+            }
+        },
+        {
+            "name": "ardour_get_current_selection",
+            "description": "Get current selection state",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        },
+        {
+            "name": "ardour_clear_selection",
+            "description": "Clear current selection",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    ]
 }

@@ -87,58 +87,61 @@ python tests/test_transport_api.py
 # 8. Track control (faders, mute, solo, pan)
 python tests/test_phase2_features.py
 
-# 9. Send/aux control
+# 9. Selection operations (strip/plugin selection and control)
+python tests/test_selection_operations.py
+
+# 10. Send/aux control
 python tests/test_phase3_sends.py
 
-# 10. Recording controls (master and track-level)
+# 11. Recording controls (master and track-level)
 python tests/test_recording_controls.py
 
-# 11. New features testing
+# 12. New features testing
 python tests/test_new_features.py
 ```
 
 ### Phase 3: Plugin System (Basic)
 
 ```bash
-# 12. Basic plugin discovery
+# 13. Basic plugin discovery
 python tests/test_plugin_discovery.py
 
-# 13. Plugin control (enable/disable/bypass)
+# 14. Plugin control (enable/disable/bypass)
 python tests/test_plugin_control.py
 
-# 14. Smart parameter conversion (dB, Hz, ratios)
+# 15. Smart parameter conversion (dB, Hz, ratios)
 python tests/test_smart_parameters.py
 ```
 
 ### Phase 4: Advanced Plugin Features
 
 ```bash
-# 15. Real plugin discovery with OSC feedback
+# 16. Real plugin discovery with OSC feedback
 python tests/test_real_plugin_discovery.py
 
-# 16. Dynamic parameter mapping system
+# 17. Dynamic parameter mapping system
 python tests/test_dynamic_parameter_mapping.py
 
-# 17. Comprehensive plugin system validation
+# 18. Comprehensive plugin system validation
 python tests/test_comprehensive_plugins.py
 
-# 18. Full end-to-end plugin workflow
+# 19. Full end-to-end plugin workflow
 python tests/test_full_plugin_workflow.py
 ```
 
 ### Phase 5: Development & Testing Tools
 
 ```bash
-# 19. Server startup and configuration
+# 20. Server startup and configuration
 python tests/test_server_startup.py
 
-# 20. Working server validation
+# 21. Working server validation
 python tests/test_working_server.py
 
-# 21. Ardour connection testing
+# 22. Ardour connection testing
 python tests/test_ardour_connection.py
 
-# 22. OSC mock testing (development only)
+# 23. OSC mock testing (development only)
 python tests/test_osc_mock.py
 ```
 
@@ -151,7 +154,7 @@ python tests/test_current_server.py && python tests/test_env.py && python tests/
 
 **Core Features Test (Run Second):**
 ```bash
-python tests/test_transport_api.py && python tests/test_phase2_features.py && python tests/test_recording_controls.py
+python tests/test_transport_api.py && python tests/test_phase2_features.py && python tests/test_selection_operations.py && python tests/test_recording_controls.py
 ```
 
 **Plugin System Test (Run Third):**
@@ -170,6 +173,7 @@ python tests/test_current_server.py && \
 python tests/test_env.py && \
 python tests/test_direct_osc.py && \
 python tests/test_phase2_features.py && \
+python tests/test_selection_operations.py && \
 python tests/test_phase3_sends.py && \
 python tests/test_recording_controls.py && \
 python tests/test_plugin_discovery.py && \
@@ -264,6 +268,14 @@ python -m mcp_server.main
 - Smart parameter control (dB, Hz, ratios)
 - Dynamic parameter mapping
 - Real-time plugin feedback
+
+### Selection Operations ✅
+- Strip selection (GUI and local expansion)
+- Selected strip controls (gain, mute, solo, pan)
+- Plugin selection and control  
+- Group operations and sharing
+- Automation and touch controls
+- Send operations for selected strips
 
 ### Send/Aux Control ✅
 - Send levels and routing

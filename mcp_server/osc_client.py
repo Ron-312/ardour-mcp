@@ -83,10 +83,6 @@ class OSCClient:
         """Fast forward transport"""
         return self.send_message("/ffwd", 1)
     
-    def goto_start(self) -> bool:
-        """Move playhead to start"""
-        return self.send_message("/goto_start", 1)
-    
     def toggle_roll(self) -> bool:
         """Toggle between play and stop"""
         return self.send_message("/toggle_roll", 1)
@@ -272,34 +268,71 @@ class OSCClient:
         """
         return self.send_message(f"/strip/{track_index}/sends", 1)
     
-    # Plugin Discovery Commands
-    def list_track_plugins(self, track_index: int) -> bool:
-        """List all plugins on a specific track
+    # Surface Setup Commands
+    def setup_surface(self, bank_size: int = 0, strip_types: int = 159, feedback: int = 0) -> bool:
+        """Setup OSC surface configuration before querying strips
         
         Args:
-            track_index: Track index (0-based)
+            bank_size: Number of strips per bank (0 = infinite)
+            strip_types: Bitwise value for included strip types (159 = all except hidden)
+            feedback: Bitwise value for feedback configuration (0 = all off for now)
             
         Returns:
             True if message sent successfully, False otherwise
         """
-        # First select the track, then request plugin list
-        self.send_message("/select/strip", track_index)
-        return self.send_message("/select/plugin/list", 1)
+        return self.send_message("/set_surface", bank_size, strip_types, feedback)
     
-    def get_plugin_parameters(self, track_index: int, plugin_id: int) -> bool:
+    def list_strips(self) -> bool:
+        """Request list of all available strips from Ardour
+        
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        self.send_message("/set_surface", 0, 159, 0)  # bank_size=0, strip_types=159, feedback=0
+        # Then we can select strips individually
+        return True
+
+    # Plugin Discovery Commands
+    def list_track_plugins(self, strip_id: int) -> bool:
+        """List all plugins on a specific strip
+        
+        Args:
+            strip_id: Surface Strip ID (SSID) from strip list (1-based)
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        # First select the strip
+        success1 = self.send_message("/select/strip", strip_id)
+        
+        # Try to discover plugins by iterating through plugin positions
+        # Since there's no direct "list plugins" command, we'll try to select
+        # plugins at different positions and see what responds
+        for plugin_index in range(8):  # Try first 8 plugin slots
+            self.send_message("/select/plugin", plugin_index)
+            # Request plugin activation state to see if plugin exists
+            self.send_message("/select/plugin/activate", 0)  # Query current state
+            
+        return success1
+    
+    def get_plugin_parameters(self, strip_id: int, plugin_id: int) -> bool:
         """Get parameter list for a specific plugin
         
         Args:
-            track_index: Track index (0-based)
-            plugin_id: Plugin ID (0-based)
+            strip_id: Surface Strip ID (SSID) from strip list
+            plugin_id: Plugin ID (1-based as returned by plugin list)
             
         Returns:
             True if message sent successfully, False otherwise
         """
-        # Select track and plugin, then request parameters
-        self.send_message("/select/strip", track_index)
+        # Use the correct Ardour OSC command: /strip/plugin/descriptor ssid piid
+        # where ssid is Surface Strip ID and piid is Plugin ID
+        # Select the strip first
+        self.send_message("/select/strip", strip_id)
+        # Select the plugin
         self.send_message("/select/plugin", plugin_id)
-        return self.send_message("/select/plugin/parameters", 1)
+        # Now we can query parameters through selection
+        return True    
     
     def get_plugin_info(self, track_index: int, plugin_id: int) -> bool:
         """Get detailed information about a specific plugin
@@ -339,6 +372,52 @@ class OSCClient:
         success1 = self.send_message("/select/strip", track_index)
         success2 = self.send_message("/select/plugin", plugin_id)
         return success1 and success2
+    
+    def select_strip(self, strip_id: int) -> bool:
+        """Select a strip (GUI selection)
+        
+        Args:
+            strip_id: Strip ID to select
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/strip/select", strip_id, 1)
+    
+    def expand_strip(self, strip_id: int, expand: bool = True) -> bool:
+        """Expand a strip (local expansion)
+        
+        Args:
+            strip_id: Strip ID to expand
+            expand: True to expand, False to contract
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/strip/expand", strip_id, 1 if expand else 0)
+    
+    def select_plugin_by_delta(self, delta: int) -> bool:
+        """Select plugin by delta from current selection
+        
+        Args:
+            delta: Delta to apply to current plugin selection
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message("/select/plugin", delta)
+    
+    def send_selected_operation(self, address: str, *args) -> bool:
+        """Send OSC message for selected strip operations
+        
+        Args:
+            address: OSC address (e.g., "/select/gain")
+            *args: Message arguments
+            
+        Returns:
+            True if message sent successfully, False otherwise
+        """
+        return self.send_message(address, *args)
     
     def set_plugin_activate(self, track_index: int, plugin_id: int, active: bool) -> bool:
         """Activate or bypass a plugin

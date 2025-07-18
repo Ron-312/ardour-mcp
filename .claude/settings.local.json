@@ -16,5 +16,9 @@
       "Bash(task-master set-status:*)"
     ],
     "deny": []
-  }
+  },
+  "enabledMcpjsonServers": [
+    "ardour-mcp"
+  ],
+  "enableAllProjectMcpServers": true
 }

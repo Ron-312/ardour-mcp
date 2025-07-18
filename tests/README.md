@@ -12,6 +12,7 @@ This directory contains all test scripts for the Ardour MCP server.
 ### Phase-Specific Tests  
 - `test_new_features.py` - Phase 1 features (track naming, record, pan)
 - `test_phase2_features.py` - Phase 2 features (enhanced transport, session management)
+- `test_selection_operations.py` - Selection operations (strip/plugin selection and control)
 - `test_phase3_sends.py` - Phase 3A features (send/aux control)
 - `test_plugin_discovery.py` - Plugin discovery and metadata
 - `test_plugin_control.py` - Plugin enable/disable control
@@ -47,6 +48,7 @@ python tests/test_osc_formats.py
 # Test specific phase features
 python tests/test_new_features.py
 python tests/test_phase2_features.py
+python tests/test_selection_operations.py
 python tests/test_phase3_sends.py
 
 # Test plugin functionality
@@ -68,6 +70,8 @@ All tests should show:
 - ✅ Plugin parameters change in real-time
 - ✅ Recording indicators update (red record buttons, input meters)
 - ✅ Smart parameter conversion works with real-world values
+- ✅ Selection operations work (strip selection, plugin selection, group operations)
+- ✅ Automation and touch controls respond correctly
 
 ## Prerequisites
 

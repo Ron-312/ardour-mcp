@@ -19,7 +19,7 @@ class SpeedRequest(BaseModel):
         le=8.0
     )
 
-@router.get("/test-connection")
+@router.post("/test-connection", operation_id="test_osc_connection")
 async def test_osc_connection():
     """Test OSC connection to Ardour"""
     try:

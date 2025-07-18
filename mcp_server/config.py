@@ -3,6 +3,12 @@ Configuration management for Ardour MCP Server
 """
 
 import os
+
+# FORCE the correct values *before* Pydantic sees them:
+os.environ['DEBUG']     = 'False'
+os.environ['LOG_LEVEL'] = 'INFO'
+
+
 from pydantic import Field
 from pydantic_settings import BaseSettings
 from typing import Optional
@@ -20,7 +26,7 @@ class Settings(BaseSettings):
     
     # Application Configuration
     debug: bool = Field(default=False, env="DEBUG")
-    log_level: str = Field(default="info", env="LOG_LEVEL")
+    log_level: str = Field(default="INFO", env="LOG_LEVEL")
     
     # Optional API Keys
     openai_api_key: Optional[str] = Field(default=None, env="OPENAI_API_KEY")

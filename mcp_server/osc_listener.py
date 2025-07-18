@@ -15,6 +15,17 @@ from mcp_server.config import get_osc_config
 logger = logging.getLogger(__name__)
 
 @dataclass
+class StripInfo:
+    """Represents a strip from Ardour's strip list"""
+    ssid: int  # Surface Strip ID
+    strip_type: str  # "AT", "MT", "B", etc.
+    name: str
+    inputs: int
+    outputs: int
+    mute: bool
+    solo: bool
+
+@dataclass
 class PluginParameter:
     """Represents a plugin parameter with its metadata"""
     id: int
@@ -33,6 +44,7 @@ class PluginInfo:
     name: str
     enabled: bool
     parameters: List[PluginParameter]
+    track_id: Optional[int] = None  # Added track_id as requested
     
 @dataclass
 class TrackInfo:
@@ -55,10 +67,12 @@ class OSCListener:
         self.server_thread = None
         self.running = False
         
-        # Data storage for discovered plugins
+        # Data storage for discovered plugins and strips
         self.tracks: Dict[int, TrackInfo] = {}
+        self.strips: Dict[int, StripInfo] = {}  # SSID -> StripInfo mapping
         self.current_track_id: Optional[int] = None
         self.current_plugin_id: Optional[int] = None
+        self.surface_setup_complete: bool = False
         
         # Callbacks for real-time updates
         self.parameter_callbacks: List[Callable] = []
@@ -71,24 +85,46 @@ class OSCListener:
     def _setup_message_handlers(self):
         """Setup OSC message handlers for different message types"""
         
-        # Plugin parameter feedback
-        self.dispatcher.map("/select/plugin/parameter", self._handle_plugin_parameter)
-        self.dispatcher.map("/select/plugin/parameters", self._handle_plugin_parameters)
+        # Official Ardour OSC handlers based on documentation
         
-        # Plugin info feedback
-        self.dispatcher.map("/select/plugin/name", self._handle_plugin_name)
+        # Strip selection feedback
+        self.dispatcher.map("/select/strip", self._handle_strip_select)
+        
+        # Plugin selection feedback  
+        self.dispatcher.map("/select/plugin", self._handle_plugin_select)
+        
+        # Plugin parameter feedback (official format)
+        self.dispatcher.map("/select/plugin/parameter", self._handle_plugin_parameter)
+        
+        # Plugin activation feedback
         self.dispatcher.map("/select/plugin/activate", self._handle_plugin_activate)
         
-        # Track/strip feedback
-        self.dispatcher.map("/select/strip", self._handle_track_select)
-        self.dispatcher.map("/strip/list", self._handle_strip_list)
-        
-        # Parameter value updates
-        self.dispatcher.map("/select/plugin/parameter/value", self._handle_parameter_value)
+        # Strip list response (if it exists)
+        self.dispatcher.map("/strip/list", self._handle_strip_list_response)
         
         # Generic fallback for debugging
         self.dispatcher.map("/*", self._handle_debug_message)
         
+    def _handle_strip_select(self, unused_addr: str, *args):
+        """Handle strip selection feedback"""
+        try:
+            if args:
+                strip_id = int(args[0])
+                self.current_track_id = strip_id
+                logger.info(f"[SELECT] Strip selected: {strip_id}")
+        except Exception as e:
+            logger.error(f"Error handling strip select: {e}")
+            
+    def _handle_plugin_select(self, unused_addr: str, *args):
+        """Handle plugin selection feedback"""
+        try:
+            if args:
+                plugin_id = int(args[0])
+                self.current_plugin_id = plugin_id
+                logger.info(f"[SELECT] Plugin selected: {plugin_id}")
+        except Exception as e:
+            logger.error(f"Error handling plugin select: {e}")
+
     def _handle_plugin_parameter(self, unused_addr: str, *args):
         """Handle plugin parameter information"""
         try:
@@ -189,6 +225,135 @@ class OSCListener:
         """Handle all other OSC messages for debugging"""
         logger.debug(f"OSC message: {unused_addr} - {args}")
         
+        # Enhanced logging for plugin discovery debugging
+        if "plugin" in unused_addr.lower():
+            logger.info(f"[PLUGIN OSC MESSAGE]: {unused_addr} {args}")
+        
+        if "strip" in unused_addr.lower():
+            logger.info(f"[STRIP OSC MESSAGE]: {unused_addr} {args}")
+        
+        # Store last message for debugging
+        self.last_message = {
+            'address': unused_addr,
+            'args': args,
+            'timestamp': time.time()
+        }
+        
+    def _handle_plugin_list_response(self, unused_addr: str, *args):
+        """Handle plugin list response from Ardour
+        
+        Expected format based on Ardour research:
+        /strip/plugin/list ssid piid name enabled
+        """
+        try:
+            logger.info(f"[PLUGIN LIST] Raw response: {unused_addr} {args}")
+            
+            if len(args) >= 4:
+                strip_id = int(args[0])  # Track/strip ID
+                plugin_id = int(args[1])  # Plugin ID 
+                plugin_name = str(args[2])  # Plugin name
+                enabled = bool(int(args[3]))  # Enabled state (1/0)
+                
+                logger.info(f"[PLUGIN LIST] Strip {strip_id}, Plugin {plugin_id}: {plugin_name} (enabled: {enabled})")
+                
+                # Store this plugin info
+                self._store_plugin_from_list(strip_id, plugin_id, plugin_name, enabled)
+                
+            else:
+                logger.warning(f"[PLUGIN LIST] Unexpected plugin list format: {args}")
+                
+        except Exception as e:
+            logger.error(f"Error handling plugin list response: {e}")
+            
+    def _handle_plugin_descriptor_response(self, unused_addr: str, *args):
+        """Handle plugin descriptor response from Ardour
+        
+        Expected format based on Ardour research:
+        /strip/plugin/descriptor ssid piid param_id param_name flags datatype min max scale_points value
+        """
+        try:
+            logger.info(f"[PLUGIN DESC] Raw response: {unused_addr} {args}")
+            
+            if len(args) >= 6:
+                strip_id = int(args[0])
+                plugin_id = int(args[1])
+                param_id = int(args[2])
+                param_name = str(args[3])
+                flags = int(args[4]) if len(args) > 4 else 0
+                datatype = str(args[5]) if len(args) > 5 else "FLOAT"
+                
+                # Optional additional fields
+                min_val = float(args[6]) if len(args) > 6 else 0.0
+                max_val = float(args[7]) if len(args) > 7 else 1.0
+                current_val = float(args[-1]) if len(args) > 8 else 0.0
+                
+                logger.info(f"[PLUGIN DESC] Strip {strip_id}, Plugin {plugin_id}, Param {param_id}: {param_name}")
+                
+                # Store parameter info
+                self._store_plugin_parameter_from_descriptor(strip_id, plugin_id, param_id, param_name, 
+                                                           current_val, min_val, max_val, datatype)
+                
+        except Exception as e:
+            logger.error(f"Error handling plugin descriptor response: {e}")
+            
+    def _handle_plugin_descriptor_end(self, unused_addr: str, *args):
+        """Handle end of plugin descriptor list"""
+        try:
+            logger.info(f"[PLUGIN DESC END] Descriptor list complete: {args}")
+        except Exception as e:
+            logger.error(f"Error handling descriptor end: {e}")
+            
+    def _handle_reply_message(self, unused_addr: str, *args):
+        """Handle generic reply messages from Ardour"""
+        try:
+            logger.info(f"[REPLY] Generic reply: {unused_addr} {args}")
+            
+            # Check if this is a plugin-related reply
+            if len(args) > 0:
+                first_arg = str(args[0])
+                if "plugin" in first_arg.lower():
+                    logger.info(f"[REPLY] Plugin-related reply detected: {args}")
+                    
+        except Exception as e:
+            logger.error(f"Error handling reply message: {e}")
+            
+    def _handle_strip_list_response(self, unused_addr: str, *args):
+        """Handle strip list response from Ardour
+        
+        Expected format: /strip/list ssid strip_type name inputs outputs mute solo ...
+        """
+        try:
+            logger.info(f"[STRIP LIST] Raw response: {unused_addr} {args}")
+            
+            if len(args) >= 7:
+                ssid = int(args[0])  # Surface Strip ID
+                strip_type = str(args[1])  # "AT", "MT", "B", etc.
+                name = str(args[2])  # Strip name
+                inputs = int(args[3])  # Number of inputs
+                outputs = int(args[4])  # Number of outputs
+                mute = bool(int(args[5]))  # Mute state
+                solo = bool(int(args[6]))  # Solo state
+                
+                # Store strip info
+                strip_info = StripInfo(
+                    ssid=ssid,
+                    strip_type=strip_type,
+                    name=name,
+                    inputs=inputs,
+                    outputs=outputs,
+                    mute=mute,
+                    solo=solo
+                )
+                
+                self.strips[ssid] = strip_info
+                logger.info(f"[STRIP LIST] Stored strip {ssid}: {strip_type} '{name}' (I:{inputs} O:{outputs})")
+                
+            else:
+                logger.warning(f"[STRIP LIST] Unexpected strip list format: {args}")
+                
+        except Exception as e:
+            logger.error(f"Error handling strip list response: {e}")
+        
     def _store_parameter(self, param_id: int, name: str, value: float, min_val: float, max_val: float, unit: str):
         """Store parameter information"""
         if self.current_track_id not in self.tracks:
@@ -235,6 +400,146 @@ class OSCListener:
                 return
                 
         plugin.parameters.append(param)
+        
+    def _store_plugin_from_list(self, strip_id: int, plugin_id: int, plugin_name: str, enabled: bool):
+        """Store plugin information from plugin list response"""
+        try:
+            # Ensure track exists
+            if strip_id not in self.tracks:
+                self.tracks[strip_id] = TrackInfo(
+                    id=strip_id,
+                    name=f"Track {strip_id}",
+                    plugins=[]
+                )
+            
+            track = self.tracks[strip_id]
+            
+            # Check if plugin already exists
+            existing_plugin = None
+            for plugin in track.plugins:
+                if plugin.id == plugin_id:
+                    existing_plugin = plugin
+                    break
+            
+            if existing_plugin:
+                # Update existing plugin
+                existing_plugin.name = plugin_name
+                existing_plugin.enabled = enabled
+                existing_plugin.track_id = strip_id
+                logger.info(f"[PLUGIN STORE] Updated plugin {plugin_id} on track {strip_id}: {plugin_name}")
+            else:
+                # Create new plugin
+                new_plugin = PluginInfo(
+                    id=plugin_id,
+                    name=plugin_name,
+                    enabled=enabled,
+                    parameters=[],
+                    track_id=strip_id
+                )
+                track.plugins.append(new_plugin)
+                logger.info(f"[PLUGIN STORE] Added new plugin {plugin_id} on track {strip_id}: {plugin_name}")
+                
+        except Exception as e:
+            logger.error(f"Error storing plugin from list: {e}")
+            
+    def _store_plugin_parameter_from_descriptor(self, strip_id: int, plugin_id: int, param_id: int, 
+                                              param_name: str, current_val: float, min_val: float, 
+                                              max_val: float, datatype: str):
+        """Store plugin parameter from descriptor response"""
+        try:
+            # Ensure track and plugin exist
+            if strip_id not in self.tracks:
+                return
+                
+            track = self.tracks[strip_id]
+            target_plugin = None
+            
+            for plugin in track.plugins:
+                if plugin.id == plugin_id:
+                    target_plugin = plugin
+                    break
+                    
+            if not target_plugin:
+                # Create plugin if it doesn't exist
+                target_plugin = PluginInfo(
+                    id=plugin_id,
+                    name=f"Plugin {plugin_id}",
+                    enabled=True,
+                    parameters=[],
+                    track_id=strip_id
+                )
+                track.plugins.append(target_plugin)
+                
+            # Determine parameter type and unit from datatype
+            param_type = self._determine_parameter_type_from_datatype(param_name, datatype)
+            unit = self._determine_unit_from_datatype(datatype, param_name)
+            
+            # Create parameter
+            parameter = PluginParameter(
+                id=param_id,
+                name=param_name,
+                value=current_val,
+                min_value=min_val,
+                max_value=max_val,
+                unit=unit,
+                type=param_type,
+                controllable=True
+            )
+            
+            # Update existing parameter or add new one
+            existing_param = None
+            for i, param in enumerate(target_plugin.parameters):
+                if param.id == param_id:
+                    existing_param = i
+                    break
+                    
+            if existing_param is not None:
+                target_plugin.parameters[existing_param] = parameter
+            else:
+                target_plugin.parameters.append(parameter)
+                
+            logger.info(f"[PARAM STORE] Stored parameter {param_id} for plugin {plugin_id} on track {strip_id}: {param_name}")
+            
+        except Exception as e:
+            logger.error(f"Error storing plugin parameter from descriptor: {e}")
+            
+    def _determine_parameter_type_from_datatype(self, param_name: str, datatype: str) -> str:
+        """Determine parameter type from Ardour datatype and parameter name"""
+        name_lower = param_name.lower()
+        datatype_lower = datatype.lower()
+        
+        # Check parameter name patterns
+        if 'freq' in name_lower or 'frequency' in name_lower:
+            return 'frequency'
+        elif 'gain' in name_lower or 'level' in name_lower:
+            return 'gain'
+        elif 'threshold' in name_lower:
+            return 'threshold'
+        elif 'ratio' in name_lower:
+            return 'ratio'
+        elif 'attack' in name_lower or 'release' in name_lower:
+            return 'time'
+        elif 'pan' in name_lower:
+            return 'pan'
+        else:
+            return 'generic'
+            
+    def _determine_unit_from_datatype(self, datatype: str, param_name: str) -> str:
+        """Determine parameter unit from Ardour datatype and parameter name"""
+        name_lower = param_name.lower()
+        
+        if 'freq' in name_lower or 'frequency' in name_lower:
+            return 'Hz'
+        elif 'gain' in name_lower or 'level' in name_lower or 'threshold' in name_lower:
+            return 'dB'
+        elif 'ratio' in name_lower:
+            return ':1'
+        elif 'attack' in name_lower or 'release' in name_lower:
+            return 'ms'
+        elif 'pan' in name_lower:
+            return '%'
+        else:
+            return ''
         
     def _store_plugin_name(self, name: str):
         """Store plugin name"""
@@ -333,17 +638,96 @@ class OSCListener:
         except Exception as e:
             logger.error(f"Error stopping OSC listener: {e}")
             
-    def discover_plugins(self, track_id: int, timeout: float = 5.0) -> List[PluginInfo]:
-        """Discover plugins on a specific track
+    def setup_surface_and_discover_strips(self, timeout: float = 3.0) -> bool:
+        """Setup OSC surface and discover available strips
         
         Args:
-            track_id: Track ID to discover plugins for
+            timeout: Timeout in seconds for strip discovery
+            
+        Returns:
+            True if setup successful, False otherwise
+        """
+        from mcp_server.osc_client import get_osc_client
+        
+        if self.surface_setup_complete:
+            logger.info("[SURFACE] Surface already set up, skipping")
+            return True
+            
+        client = get_osc_client()
+        
+        # Step 1: Setup surface
+        logger.info("[SURFACE] Setting up OSC surface")
+        success = client.setup_surface(bank_size=0, strip_types=159, feedback=0)
+        if not success:
+            logger.error("[SURFACE] Failed to setup OSC surface")
+            return False
+            
+        # Step 2: Request strip list
+        logger.info("[SURFACE] Requesting strip list")
+        success = client.list_strips()
+        if not success:
+            logger.error("[SURFACE] Failed to request strip list")
+            return False
+            
+        # Step 3: Wait for strip list responses
+        logger.info(f"[SURFACE] Waiting for strip list (timeout: {timeout}s)...")
+        start_time = time.time()
+        initial_strip_count = len(self.strips)
+        
+        while time.time() - start_time < timeout:
+            time.sleep(0.1)
+            
+        elapsed = time.time() - start_time
+        strip_count = len(self.strips) - initial_strip_count
+        
+        if strip_count > 0:
+            logger.info(f"[SURFACE] Discovered {strip_count} strips in {elapsed:.1f}s")
+            logger.info(f"[SURFACE] Available strips: {list(self.strips.keys())}")
+            self.surface_setup_complete = True
+            return True
+        else:
+            logger.warning(f"[SURFACE] No strips discovered in {elapsed:.1f}s")
+            return False
+
+    def discover_plugins(self, track_id: int, timeout: float = 5.0) -> List[PluginInfo]:
+        """Discover plugins on a specific track using proper strip IDs
+        
+        Args:
+            track_id: Track ID (1-based for API compatibility) 
             timeout: Timeout in seconds for discovery
             
         Returns:
             List of discovered plugins
         """
         from mcp_server.osc_client import get_osc_client
+        
+        # Ensure surface is set up and strips are discovered
+        if not self.setup_surface_and_discover_strips():
+            logger.error(f"[DISCOVERY] Failed to setup surface, cannot discover plugins")
+            return []
+            
+        # Find the corresponding strip ID for this track
+        # We need to map the track_id (API 1-based) to an actual SSID
+        track_strips = [strip for strip in self.strips.values() 
+                       if strip.strip_type in ["AT", "MT"]]  # Audio/MIDI tracks only
+        
+        if not track_strips:
+            logger.warning(f"[DISCOVERY] No audio/MIDI tracks found in strip list")
+            return []
+            
+        # Sort by SSID to get consistent ordering
+        track_strips.sort(key=lambda s: s.ssid)
+        
+        # Convert 1-based track_id to 0-based index for track_strips array
+        track_index = track_id - 1
+        if track_index >= len(track_strips):
+            logger.warning(f"[DISCOVERY] Track {track_id} not found (only {len(track_strips)} tracks available)")
+            return []
+            
+        strip = track_strips[track_index]
+        strip_id = strip.ssid
+        
+        logger.info(f"[DISCOVERY] Track {track_id} -> Strip {strip_id} ('{strip.name}')")
         
         self.current_track_id = track_id
         
@@ -353,20 +737,67 @@ class OSCListener:
             
         client = get_osc_client()
         
-        # Request plugin list for track
-        logger.info(f"Discovering plugins for track {track_id}")
-        client.list_track_plugins(track_id)
+        # Request plugin list for strip
+        logger.info(f"[DISCOVERY] Starting plugin discovery for track {track_id} (strip {strip_id})")
+        logger.info(f"[OSC SEND] /strip/plugin/list {strip_id}")
+        
+        success = client.list_track_plugins(strip_id)
+        if not success:
+            logger.error(f"[ERROR] Failed to send plugin list request for strip {strip_id}")
+            return []
+        
+        logger.info(f"[WAIT] Waiting for plugin responses (timeout: {timeout}s)...")
         
         # Wait for responses
         start_time = time.time()
+        message_count = 0
         while time.time() - start_time < timeout:
+            # Check for new messages
+            if hasattr(self, 'last_message') and self.last_message:
+                if self.last_message['timestamp'] > start_time:
+                    message_count += 1
+                    logger.info(f"[OSC RECV] {self.last_message['address']} {self.last_message['args']}")
+            
             time.sleep(0.1)
             
+        elapsed = time.time() - start_time
+        logger.info(f"[DISCOVERY] Completed after {elapsed:.1f}s, received {message_count} messages")
+        
         # Return discovered plugins
         if track_id in self.tracks:
-            return self.tracks[track_id].plugins
+            plugins = self.tracks[track_id].plugins
+            logger.info(f"[SUCCESS] Found {len(plugins)} plugins for track {track_id}: {[p.name for p in plugins]}")
+            return plugins
         else:
+            logger.warning(f"[NO PLUGINS] No plugins found for track {track_id} after {elapsed:.1f}s")
+            logger.info(f"[CACHE] Available tracks in cache: {list(self.tracks.keys())}")
             return []
+    
+    def discover_specific_plugin(self, track_id: int, plugin_id: int, timeout: float = 5.0) -> Optional[PluginInfo]:
+        """Discover a specific plugin on a track
+        
+        Args:
+            track_id: Track ID to discover plugin on
+            plugin_id: Specific plugin ID to discover
+            timeout: Timeout in seconds for discovery
+            
+        Returns:
+            Plugin info if found, None otherwise
+        """
+        logger.info(f"[DISCOVERY] Discovering specific plugin {plugin_id} on track {track_id}")
+        
+        # First discover all plugins on the track
+        plugins = self.discover_plugins(track_id, timeout)
+        
+        # Find the specific plugin
+        for plugin in plugins:
+            if plugin.id == plugin_id:
+                plugin.track_id = track_id  # Ensure track_id is set
+                logger.info(f"[SUCCESS] Found specific plugin: {plugin.name} on track {track_id}")
+                return plugin
+        
+        logger.warning(f"[NOT FOUND] Plugin {plugin_id} not found on track {track_id}")
+        return None
             
     def discover_plugin_parameters(self, track_id: int, plugin_id: int, timeout: float = 5.0) -> List[PluginParameter]:
         """Discover parameters for a specific plugin

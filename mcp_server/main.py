@@ -11,12 +11,12 @@ from fastapi.responses import JSONResponse
 from dotenv import load_dotenv
 import os
 
-from mcp_server.api import transport, track, session, sends, plugins, recording
+from mcp_server.api import transport, track, session, sends, plugins, recording, selection
 from mcp_server.config import get_settings
 from mcp_server.osc_listener import start_osc_listener
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Configure logging
 settings = get_settings()
@@ -24,7 +24,7 @@ logging.basicConfig(
     level=getattr(logging, settings.log_level.upper()),
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(sys.stdout),
+        # logging.StreamHandler(sys.stdout),
         logging.FileHandler('ardour_mcp.log')
     ]
 )
@@ -79,6 +79,7 @@ app.include_router(session.router)
 app.include_router(sends.router)
 app.include_router(plugins.router)
 app.include_router(recording.router)
+app.include_router(selection.router)
 
 # Configure CORS
 app.add_middleware(
@@ -98,6 +99,11 @@ async def root():
         "endpoints": {
             "transport": "/transport/{play,stop}",
             "track": "/track/{n}/fader",
+            "selection": "/selection/{strip/select,expand,gain,mute,etc}",
+            "plugins": "/plugins/track/{n}/plugins",
+            "sends": "/sends/track/{n}/sends",
+            "recording": "/recording/{enable,disable}",
+            "session": "/session/{save,load}",
             "docs": "/docs"
         }
     }
