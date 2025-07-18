@@ -77,7 +77,11 @@ class SmartParameterRequest(BaseModel):
         """Convert to dictionary, excluding None values"""
         return {k: v for k, v in self.dict().items() if v is not None}
 
-@router.get("/track/{track_number}/plugins", response_model=PluginListResponse)
+@router.get(
+    "/track/{track_number}/plugins", 
+    response_model=PluginListResponse,
+    operation_id="list_track_plugins"
+)
 async def list_track_plugins(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256)
 ):
@@ -119,7 +123,11 @@ async def list_track_plugins(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/track/{track_number}/plugin/{plugin_id}/parameters", response_model=PluginParametersResponse)
+@router.get(
+    "/track/{track_number}/plugin/{plugin_id}/parameters", 
+    response_model=PluginParametersResponse,
+    operation_id="get_plugin_parameters"
+)
 async def get_plugin_parameters(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32)
@@ -177,7 +185,10 @@ async def get_plugin_parameters(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/track/{track_number}/plugin/{plugin_id}/info")
+@router.get(
+    "/track/{track_number}/plugin/{plugin_id}/info",
+    operation_id="get_plugin_info"
+)
 async def get_plugin_info(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32)
@@ -224,7 +235,10 @@ async def get_plugin_info(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/discovery/scan")
+@router.get(
+    "/discovery/scan",
+    operation_id="scan_all_plugins"
+)
 async def scan_all_plugins():
     """Scan all tracks for plugins and return comprehensive plugin map using real OSC discovery"""
     try:
@@ -283,7 +297,10 @@ async def scan_all_plugins():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/activate")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/activate",
+    operation_id="set_plugin_activate"
+)
 async def set_plugin_activate(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -322,7 +339,10 @@ async def set_plugin_activate(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/bypass")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/bypass",
+    operation_id="bypass_plugin"
+)
 async def bypass_plugin(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32)
@@ -358,7 +378,10 @@ async def bypass_plugin(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/enable")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/enable",
+    operation_id="enable_plugin"
+)
 async def enable_plugin(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32)
@@ -394,7 +417,10 @@ async def enable_plugin(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/parameter/{parameter_name}")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/parameter/{parameter_name}",
+    operation_id="set_smart_parameter"
+)
 async def set_smart_parameter(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -458,7 +484,10 @@ async def set_smart_parameter(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/compressor/threshold")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/compressor/threshold",
+    operation_id="set_compressor_threshold"
+)
 async def set_compressor_threshold(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -471,7 +500,10 @@ async def set_compressor_threshold(
     # Use the generic smart parameter endpoint
     return await set_smart_parameter(track_number, plugin_id, "threshold", request)
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/compressor/ratio")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/compressor/ratio",
+    operation_id="set_compressor_ratio"
+)
 async def set_compressor_ratio(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -483,7 +515,10 @@ async def set_compressor_ratio(
     
     return await set_smart_parameter(track_number, plugin_id, "ratio", request)
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/eq/frequency")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/eq/frequency",
+    operation_id="set_eq_frequency"
+)
 async def set_eq_frequency(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -495,7 +530,10 @@ async def set_eq_frequency(
     
     return await set_smart_parameter(track_number, plugin_id, "frequency", request)
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/eq/gain")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/eq/gain",
+    operation_id="set_eq_gain"
+)
 async def set_eq_gain(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -509,7 +547,10 @@ async def set_eq_gain(
 
 # Dynamic Parameter Mapping Endpoints
 
-@router.get("/track/{track_number}/plugin/{plugin_id}/parameters/names")
+@router.get(
+    "/track/{track_number}/plugin/{plugin_id}/parameters/names",
+    operation_id="list_parameter_names"
+)
 async def list_parameter_names(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32)
@@ -545,7 +586,10 @@ async def list_parameter_names(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/track/{track_number}/plugin/{plugin_id}/parameter/{parameter_name}/info")
+@router.get(
+    "/track/{track_number}/plugin/{plugin_id}/parameter/{parameter_name}/info",
+    operation_id="get_parameter_info"
+)
 async def get_parameter_info(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -581,7 +625,10 @@ async def get_parameter_info(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/track/{track_number}/plugin/{plugin_id}/parameters/search")
+@router.get(
+    "/track/{track_number}/plugin/{plugin_id}/parameters/search",
+    operation_id="search_parameters"
+)
 async def search_parameters(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -620,7 +667,10 @@ async def search_parameters(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/track/{track_number}/plugin/{plugin_id}/parameters/suggestions")
+@router.get(
+    "/track/{track_number}/plugin/{plugin_id}/parameters/suggestions",
+    operation_id="get_parameter_suggestions"
+)
 async def get_parameter_suggestions(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),
@@ -649,7 +699,10 @@ async def get_parameter_suggestions(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/plugin/{plugin_id}/parameter/{parameter_name}/dynamic")
+@router.post(
+    "/track/{track_number}/plugin/{plugin_id}/parameter/{parameter_name}/dynamic",
+    operation_id="set_dynamic_parameter"
+)
 async def set_dynamic_parameter(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     plugin_id: int = Path(..., description="Plugin ID (0-based)", ge=0, le=32),

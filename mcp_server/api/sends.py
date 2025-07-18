@@ -32,7 +32,10 @@ class SendGainRequest(BaseModel):
         le=6.0
     )
 
-@router.post("/track/{track_number}/send/{send_number}/level")
+@router.post(
+    "/track/{track_number}/send/{send_number}/level",
+    operation_id="set_send_level"
+)
 async def set_send_level(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     send_number: int = Path(..., description="Send number (1-based)", ge=1, le=32),
@@ -71,7 +74,10 @@ async def set_send_level(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/send/{send_number}/gain")
+@router.post(
+    "/track/{track_number}/send/{send_number}/gain",
+    operation_id="set_send_gain"
+)
 async def set_send_gain(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     send_number: int = Path(..., description="Send number (1-based)", ge=1, le=32),
@@ -109,7 +115,10 @@ async def set_send_gain(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/send/{send_number}/enable")
+@router.post(
+    "/track/{track_number}/send/{send_number}/enable",
+    operation_id="set_send_enable"
+)
 async def set_send_enable(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     send_number: int = Path(..., description="Send number (1-based)", ge=1, le=32),
@@ -148,7 +157,10 @@ async def set_send_enable(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/track/{track_number}/sends")
+@router.get(
+    "/track/{track_number}/sends",
+    operation_id="list_track_sends"
+)
 async def list_track_sends(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256)
 ):

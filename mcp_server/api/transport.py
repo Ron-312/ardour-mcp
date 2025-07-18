@@ -42,7 +42,10 @@ async def test_osc_connection():
             "message": f"Connection test failed: {str(e)}"
         }
 
-@router.post("/play")
+@router.post(
+    "/play",
+    operation_id="play_transport"
+)
 async def play_transport():
     """Start transport playback"""
     try:
@@ -70,7 +73,10 @@ async def play_transport():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/stop")
+@router.post(
+    "/stop",
+    operation_id="stop_transport"
+)
 async def stop_transport():
     """Stop transport playback"""
     try:
@@ -98,7 +104,10 @@ async def stop_transport():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/rewind")
+@router.post(
+    "/rewind",
+    operation_id="rewind_transport"
+)
 async def rewind_transport():
     """Rewind transport to beginning"""
     try:
@@ -126,7 +135,10 @@ async def rewind_transport():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/fast-forward")
+@router.post(
+    "/fast-forward",
+    operation_id="fast_forward_transport"
+)
 async def fast_forward_transport():
     """Fast forward transport"""
     try:
@@ -154,7 +166,10 @@ async def fast_forward_transport():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/goto-start")
+@router.post(
+    "/goto-start",
+    operation_id="goto_start"
+)
 async def goto_start():
     """Move playhead to start"""
     try:
@@ -182,7 +197,10 @@ async def goto_start():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/goto-end")
+@router.post(
+    "/goto-end",
+    operation_id="goto_end"
+)
 async def goto_end():
     """Move playhead to end"""
     try:
@@ -210,7 +228,10 @@ async def goto_end():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/toggle-roll")
+@router.post(
+    "/toggle-roll",
+    operation_id="toggle_roll"
+)
 async def toggle_roll():
     """Toggle between play and stop"""
     try:
@@ -238,7 +259,10 @@ async def toggle_roll():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/toggle-loop")
+@router.post(
+    "/toggle-loop",
+    operation_id="toggle_loop"
+)
 async def toggle_loop():
     """Toggle loop mode"""
     try:
@@ -266,7 +290,10 @@ async def toggle_loop():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/speed")
+@router.post(
+    "/speed",
+    operation_id="set_transport_speed"
+)
 async def set_transport_speed(request: SpeedRequest):
     """Set transport speed"""
     try:
@@ -295,7 +322,10 @@ async def set_transport_speed(request: SpeedRequest):
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/add-marker")
+@router.post(
+    "/add-marker",
+    operation_id="add_marker"
+)
 async def add_marker():
     """Add marker at current position"""
     try:
@@ -323,7 +353,10 @@ async def add_marker():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/next-marker")
+@router.post(
+    "/next-marker",
+    operation_id="next_marker"
+)
 async def next_marker():
     """Go to next marker"""
     try:
@@ -351,7 +384,10 @@ async def next_marker():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/prev-marker")
+@router.post(
+    "/prev-marker",
+    operation_id="prev_marker"
+)
 async def prev_marker():
     """Go to previous marker"""
     try:

@@ -124,7 +124,10 @@ class PluginParameterRequest(BaseModel):
 
 # API Endpoints
 
-@router.get("/current")
+@router.get(
+    "/current",
+    operation_id="get_current_selection"
+)
 async def get_current_selection():
     """Get current selection state"""
     try:
@@ -137,7 +140,10 @@ async def get_current_selection():
         logger.error(f"Error getting current selection: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/strip/select")
+@router.post(
+    "/strip/select",
+    operation_id="select_strip"
+)
 async def select_strip(request: StripSelectRequest):
     """Select a strip (GUI selection)"""
     try:
@@ -170,7 +176,10 @@ async def select_strip(request: StripSelectRequest):
         logger.error(f"Error in select_strip: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/strip/expand")
+@router.post(
+    "/strip/expand",
+    operation_id="expand_strip"
+)
 async def expand_strip(request: StripExpandRequest):
     """Expand a strip (local expansion)"""
     try:
@@ -201,7 +210,10 @@ async def expand_strip(request: StripExpandRequest):
         logger.error(f"Error in expand_strip: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/expand")
+@router.post(
+    "/expand",
+    operation_id="set_expansion_mode"
+)
 async def set_expansion_mode(request: ExpandRequest):
     """Set expansion mode for current selection"""
     try:
@@ -233,7 +245,10 @@ async def set_expansion_mode(request: ExpandRequest):
         logger.error(f"Error in set_expansion_mode: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/hide")
+@router.post(
+    "/hide",
+    operation_id="hide_strip"
+)
 async def hide_strip(request: HideRequest):
     """Hide/show selected strip"""
     try:
@@ -259,7 +274,10 @@ async def hide_strip(request: HideRequest):
         logger.error(f"Error in hide_strip: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/name")
+@router.post(
+    "/name",
+    operation_id="set_strip_name"
+)
 async def set_strip_name(request: NameRequest):
     """Set name for selected strip"""
     try:
@@ -284,7 +302,10 @@ async def set_strip_name(request: NameRequest):
         logger.error(f"Error in set_strip_name: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/comment")
+@router.post(
+    "/comment",
+    operation_id="set_strip_comment"
+)
 async def set_strip_comment(request: CommentRequest):
     """Set comment for selected strip"""
     try:
@@ -309,7 +330,10 @@ async def set_strip_comment(request: CommentRequest):
         logger.error(f"Error in set_strip_comment: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group")
+@router.post(
+    "/group",
+    operation_id="set_strip_group"
+)
 async def set_strip_group(request: GroupRequest):
     """Set group for selected strip"""
     try:
@@ -335,7 +359,10 @@ async def set_strip_group(request: GroupRequest):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # Group state operations
-@router.post("/group/enable")
+@router.post(
+    "/group/enable",
+    operation_id="set_group_enable"
+)
 async def set_group_enable(request: GroupStateRequest):
     """Set group enable state"""
     try:
@@ -356,7 +383,10 @@ async def set_group_enable(request: GroupStateRequest):
         logger.error(f"Error in set_group_enable: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/gain")
+@router.post(
+    "/group/gain",
+    operation_id="set_group_gain"
+)
 async def set_group_gain(request: GroupStateRequest):
     """Set group gain sharing"""
     try:
@@ -377,7 +407,10 @@ async def set_group_gain(request: GroupStateRequest):
         logger.error(f"Error in set_group_gain: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/relative")
+@router.post(
+    "/group/relative",
+    operation_id="set_group_relative"
+)
 async def set_group_relative(request: GroupStateRequest):
     """Set group relative state"""
     try:
@@ -398,7 +431,10 @@ async def set_group_relative(request: GroupStateRequest):
         logger.error(f"Error in set_group_relative: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/mute")
+@router.post(
+    "/group/mute",
+    operation_id="set_group_mute"
+)
 async def set_group_mute(request: GroupStateRequest):
     """Set group mute sharing"""
     try:
@@ -419,7 +455,10 @@ async def set_group_mute(request: GroupStateRequest):
         logger.error(f"Error in set_group_mute: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/solo")
+@router.post(
+    "/group/solo",
+    operation_id="set_group_solo"
+)
 async def set_group_solo(request: GroupStateRequest):
     """Set group solo sharing"""
     try:
@@ -440,7 +479,10 @@ async def set_group_solo(request: GroupStateRequest):
         logger.error(f"Error in set_group_solo: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/recenable")
+@router.post(
+    "/group/recenable",
+    operation_id="set_group_recenable"
+)
 async def set_group_recenable(request: GroupStateRequest):
     """Set group recenable sharing"""
     try:
@@ -461,7 +503,10 @@ async def set_group_recenable(request: GroupStateRequest):
         logger.error(f"Error in set_group_recenable: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/select")
+@router.post(
+    "/group/select",
+    operation_id="set_group_select"
+)
 async def set_group_select(request: GroupStateRequest):
     """Set group select sharing"""
     try:
@@ -482,7 +527,10 @@ async def set_group_select(request: GroupStateRequest):
         logger.error(f"Error in set_group_select: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/active")
+@router.post(
+    "/group/active",
+    operation_id="set_group_active"
+)
 async def set_group_active(request: GroupStateRequest):
     """Set group active sharing"""
     try:
@@ -503,7 +551,10 @@ async def set_group_active(request: GroupStateRequest):
         logger.error(f"Error in set_group_active: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/color")
+@router.post(
+    "/group/color",
+    operation_id="set_group_color"
+)
 async def set_group_color(request: GroupStateRequest):
     """Set group color sharing"""
     try:
@@ -524,7 +575,10 @@ async def set_group_color(request: GroupStateRequest):
         logger.error(f"Error in set_group_color: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/group/monitoring")
+@router.post(
+    "/group/monitoring",
+    operation_id="set_group_monitoring"
+)
 async def set_group_monitoring(request: GroupStateRequest):
     """Set group monitoring sharing"""
     try:
@@ -546,7 +600,10 @@ async def set_group_monitoring(request: GroupStateRequest):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # Basic strip operations
-@router.post("/recenable")
+@router.post(
+    "/recenable",
+    operation_id="set_recenable"
+)
 async def set_recenable(request: BooleanRequest):
     """Set record enable for selected strip"""
     try:
@@ -568,7 +625,10 @@ async def set_recenable(request: BooleanRequest):
         logger.error(f"Error in set_recenable: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/record_safe")
+@router.post(
+    "/record_safe",
+    operation_id="set_record_safe"
+)
 async def set_record_safe(request: BooleanRequest):
     """Set record safe for selected strip"""
     try:
@@ -590,7 +650,10 @@ async def set_record_safe(request: BooleanRequest):
         logger.error(f"Error in set_record_safe: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/mute")
+@router.post(
+    "/mute",
+    operation_id="set_mute"
+)
 async def set_mute(request: BooleanRequest):
     """Set mute for selected strip"""
     try:
@@ -612,7 +675,10 @@ async def set_mute(request: BooleanRequest):
         logger.error(f"Error in set_mute: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/solo")
+@router.post(
+    "/solo",
+    operation_id="set_solo"
+)
 async def set_solo(request: BooleanRequest):
     """Set solo for selected strip"""
     try:
@@ -634,7 +700,10 @@ async def set_solo(request: BooleanRequest):
         logger.error(f"Error in set_solo: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/solo_iso")
+@router.post(
+    "/solo_iso",
+    operation_id="set_solo_iso"
+)
 async def set_solo_iso(request: BooleanRequest):
     """Set solo isolate for selected strip"""
     try:
@@ -656,7 +725,10 @@ async def set_solo_iso(request: BooleanRequest):
         logger.error(f"Error in set_solo_iso: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/solo_safe")
+@router.post(
+    "/solo_safe",
+    operation_id="set_solo_safe"
+)
 async def set_solo_safe(request: BooleanRequest):
     """Set solo safe for selected strip"""
     try:
@@ -678,7 +750,10 @@ async def set_solo_safe(request: BooleanRequest):
         logger.error(f"Error in set_solo_safe: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/monitor_input")
+@router.post(
+    "/monitor_input",
+    operation_id="set_monitor_input"
+)
 async def set_monitor_input(request: BooleanRequest):
     """Set monitor input for selected strip"""
     try:
@@ -700,7 +775,10 @@ async def set_monitor_input(request: BooleanRequest):
         logger.error(f"Error in set_monitor_input: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/monitor_disk")
+@router.post(
+    "/monitor_disk",
+    operation_id="set_monitor_disk"
+)
 async def set_monitor_disk(request: BooleanRequest):
     """Set monitor disk for selected strip"""
     try:
@@ -722,7 +800,10 @@ async def set_monitor_disk(request: BooleanRequest):
         logger.error(f"Error in set_monitor_disk: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/polarity")
+@router.post(
+    "/polarity",
+    operation_id="set_polarity"
+)
 async def set_polarity(request: BooleanRequest):
     """Set polarity invert for selected strip"""
     try:
@@ -744,7 +825,10 @@ async def set_polarity(request: BooleanRequest):
         logger.error(f"Error in set_polarity: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/gain")
+@router.post(
+    "/gain",
+    operation_id="set_gain"
+)
 async def set_gain(request: GainRequest):
     """Set gain for selected strip"""
     try:
@@ -765,7 +849,10 @@ async def set_gain(request: GainRequest):
         logger.error(f"Error in set_gain: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/fader")
+@router.post(
+    "/fader",
+    operation_id="set_fader"
+)
 async def set_fader(request: FaderRequest):
     """Set fader position for selected strip"""
     try:
@@ -786,7 +873,10 @@ async def set_fader(request: FaderRequest):
         logger.error(f"Error in set_fader: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/db_delta")
+@router.post(
+    "/db_delta",
+    operation_id="set_db_delta"
+)
 async def set_db_delta(request: DeltaRequest):
     """Apply gain delta to selected strip"""
     try:
@@ -807,7 +897,10 @@ async def set_db_delta(request: DeltaRequest):
         logger.error(f"Error in set_db_delta: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/vca")
+@router.post(
+    "/vca",
+    operation_id="set_vca"
+)
 async def set_vca(request: VCARequest):
     """Set VCA control for selected strip"""
     try:
@@ -830,7 +923,10 @@ async def set_vca(request: VCARequest):
         logger.error(f"Error in set_vca: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/vca/toggle")
+@router.post(
+    "/vca/toggle",
+    operation_id="toggle_vca"
+)
 async def toggle_vca(request: VCAToggleRequest):
     """Toggle VCA control for selected strip"""
     try:
@@ -851,7 +947,10 @@ async def toggle_vca(request: VCAToggleRequest):
         logger.error(f"Error in toggle_vca: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/spill")
+@router.post(
+    "/spill",
+    operation_id="spill_strips"
+)
 async def spill_strips():
     """Spill strips related to selected strip"""
     try:
@@ -871,7 +970,10 @@ async def spill_strips():
         logger.error(f"Error in spill_strips: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/trim")
+@router.post(
+    "/trim",
+    operation_id="set_trim"
+)
 async def set_trim(request: TrimRequest):
     """Set trim for selected strip"""
     try:
@@ -893,7 +995,10 @@ async def set_trim(request: TrimRequest):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # Pan operations
-@router.post("/pan_stereo_position")
+@router.post(
+    "/pan_stereo_position",
+    operation_id="set_pan_stereo_position"
+)
 async def set_pan_stereo_position(request: PanRequest):
     """Set stereo pan position for selected strip"""
     try:
@@ -914,7 +1019,10 @@ async def set_pan_stereo_position(request: PanRequest):
         logger.error(f"Error in set_pan_stereo_position: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/pan_stereo_width")
+@router.post(
+    "/pan_stereo_width",
+    operation_id="set_pan_stereo_width"
+)
 async def set_pan_stereo_width(request: PanRequest):
     """Set stereo pan width for selected strip"""
     try:
@@ -935,7 +1043,10 @@ async def set_pan_stereo_width(request: PanRequest):
         logger.error(f"Error in set_pan_stereo_width: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/pan_elevation_position")
+@router.post(
+    "/pan_elevation_position",
+    operation_id="set_pan_elevation_position"
+)
 async def set_pan_elevation_position(request: PanRequest):
     """Set pan elevation position for selected strip"""
     try:
@@ -956,7 +1067,10 @@ async def set_pan_elevation_position(request: PanRequest):
         logger.error(f"Error in set_pan_elevation_position: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/pan_frontback_position")
+@router.post(
+    "/pan_frontback_position",
+    operation_id="set_pan_frontback_position"
+)
 async def set_pan_frontback_position(request: PanRequest):
     """Set pan front/back position for selected strip"""
     try:
@@ -977,7 +1091,10 @@ async def set_pan_frontback_position(request: PanRequest):
         logger.error(f"Error in set_pan_frontback_position: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/pan_lfe_control")
+@router.post(
+    "/pan_lfe_control",
+    operation_id="set_pan_lfe_control"
+)
 async def set_pan_lfe_control(request: PanRequest):
     """Set LFE control for selected strip"""
     try:
@@ -999,7 +1116,10 @@ async def set_pan_lfe_control(request: PanRequest):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # Send operations
-@router.post("/send_gain")
+@router.post(
+    "/send_gain",
+    operation_id="set_send_gain"
+)
 async def set_send_gain(request: SendGainRequest):
     """Set send gain for selected strip"""
     try:
@@ -1021,7 +1141,10 @@ async def set_send_gain(request: SendGainRequest):
         logger.error(f"Error in set_send_gain: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/send_fader")
+@router.post(
+    "/send_fader",
+    operation_id="set_send_fader"
+)
 async def set_send_fader(request: SendFaderRequest):
     """Set send fader for selected strip"""
     try:
@@ -1043,7 +1166,10 @@ async def set_send_fader(request: SendFaderRequest):
         logger.error(f"Error in set_send_fader: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/send_enable")
+@router.post(
+    "/send_enable",
+    operation_id="set_send_enable"
+)
 async def set_send_enable(request: SendEnableRequest):
     """Set send enable for selected strip"""
     try:
@@ -1066,7 +1192,10 @@ async def set_send_enable(request: SendEnableRequest):
         logger.error(f"Error in set_send_enable: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/send_page")
+@router.post(
+    "/send_page",
+    operation_id="set_send_page"
+)
 async def set_send_page(request: DeltaRequest):
     """Navigate send pages for selected strip"""
     try:
@@ -1089,7 +1218,10 @@ async def set_send_page(request: DeltaRequest):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # Plugin operations
-@router.post("/plugin")
+@router.post(
+    "/plugin",
+    operation_id="select_plugin"
+)
 async def select_plugin(request: PluginSelectRequest):
     """Select plugin by delta from current plugin"""
     try:
@@ -1118,7 +1250,10 @@ async def select_plugin(request: PluginSelectRequest):
         logger.error(f"Error in select_plugin: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/plugin_page")
+@router.post(
+    "/plugin_page",
+    operation_id="set_plugin_page"
+)
 async def set_plugin_page(request: PluginPageRequest):
     """Navigate plugin pages"""
     try:
@@ -1144,7 +1279,10 @@ async def set_plugin_page(request: PluginPageRequest):
         logger.error(f"Error in set_plugin_page: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/plugin/activate")
+@router.post(
+    "/plugin/activate",
+    operation_id="set_plugin_activate"
+)
 async def set_plugin_activate(request: PluginActivateRequest):
     """Activate/bypass selected plugin"""
     try:
@@ -1166,7 +1304,10 @@ async def set_plugin_activate(request: PluginActivateRequest):
         logger.error(f"Error in set_plugin_activate: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/plugin/parameter")
+@router.post(
+    "/plugin/parameter",
+    operation_id="set_plugin_parameter"
+)
 async def set_plugin_parameter(request: PluginParameterRequest):
     """Set parameter for selected plugin"""
     try:
@@ -1189,7 +1330,10 @@ async def set_plugin_parameter(request: PluginParameterRequest):
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 # Automation and touch controls
-@router.post("/automation/{control_name}")
+@router.post(
+    "/automation/{control_name}",
+    operation_id="set_automation"
+)
 async def set_automation(
     control_name: str = Path(..., description="Control name (gain, mute, solo, etc.)"),
     request: AutomationRequest = ...
@@ -1218,7 +1362,10 @@ async def set_automation(
         logger.error(f"Error in set_automation: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.post("/touch/{control_name}")
+@router.post(
+    "/touch/{control_name}",
+    operation_id="set_touch"
+)
 async def set_touch(
     control_name: str = Path(..., description="Control name (gain, mute, solo, etc.)"),
     request: TouchRequest = ...
@@ -1244,7 +1391,10 @@ async def set_touch(
         logger.error(f"Error in set_touch: {e}")
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.delete("/clear")
+@router.delete(
+    "/clear",
+    operation_id="clear_selection"
+)
 async def clear_selection():
     """Clear current selection"""
     try:

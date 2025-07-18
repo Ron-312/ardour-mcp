@@ -22,7 +22,10 @@ class InputMonitorRequest(BaseModel):
     """Request model for input monitoring control"""
     enabled: bool = Field(..., description="True to enable input monitoring, False to disable")
 
-@router.post("/enable")
+@router.post(
+    "/enable",
+    operation_id="set_recording_enable"
+)
 async def set_recording_enable(request: RecordingEnableRequest):
     """Enable or disable global recording"""
     try:
@@ -52,7 +55,10 @@ async def set_recording_enable(request: RecordingEnableRequest):
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/disable")
+@router.post(
+    "/disable",
+    operation_id="disable_recording"
+)
 async def disable_recording():
     """Disable global recording (convenience endpoint)"""
     try:
@@ -81,7 +87,10 @@ async def disable_recording():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/punch-in")
+@router.post(
+    "/punch-in",
+    operation_id="set_punch_in"
+)
 async def set_punch_in(request: PunchRecordingRequest):
     """Enable or disable punch-in recording"""
     try:
@@ -111,7 +120,10 @@ async def set_punch_in(request: PunchRecordingRequest):
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/punch-out")
+@router.post(
+    "/punch-out",
+    operation_id="set_punch_out"
+)
 async def set_punch_out(request: PunchRecordingRequest):
     """Enable or disable punch-out recording"""
     try:
@@ -141,7 +153,10 @@ async def set_punch_out(request: PunchRecordingRequest):
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/input-monitor")
+@router.post(
+    "/input-monitor",
+    operation_id="set_global_input_monitor"
+)
 async def set_global_input_monitor(request: InputMonitorRequest):
     """Enable or disable global input monitoring"""
     try:
@@ -171,7 +186,10 @@ async def set_global_input_monitor(request: InputMonitorRequest):
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/track/{track_number}/input-monitor")
+@router.post(
+    "/track/{track_number}/input-monitor",
+    operation_id="set_track_input_monitor"
+)
 async def set_track_input_monitor(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: InputMonitorRequest = ...
@@ -207,7 +225,10 @@ async def set_track_input_monitor(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/status")
+@router.get(
+    "/status",
+    operation_id="get_recording_status"
+)
 async def get_recording_status():
     """Get current recording status"""
     try:
@@ -243,7 +264,10 @@ async def get_recording_status():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/start")
+@router.post(
+    "/start",
+    operation_id="start_recording"
+)
 async def start_recording():
     """Start recording (convenience endpoint)"""
     try:
@@ -274,7 +298,10 @@ async def start_recording():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/stop")
+@router.post(
+    "/stop",
+    operation_id="stop_recording"
+)
 async def stop_recording():
     """Stop recording (convenience endpoint)"""
     try:

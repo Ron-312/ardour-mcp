@@ -14,7 +14,10 @@ class SnapshotRequest(BaseModel):
     """Request model for session snapshots"""
     switch_to_new: bool = Field(False, description="Switch to new snapshot after creation")
 
-@router.post("/add-track-dialog")
+@router.post(
+    "/add-track-dialog",
+    operation_id="open_add_track_dialog"    # ← force this exact tool name
+)
 async def open_add_track_dialog():
     """Open Ardour's Add Track/Bus dialog"""
     try:
@@ -43,7 +46,10 @@ async def open_add_track_dialog():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/save")
+@router.post(
+    "/save",
+    operation_id="save_session"
+)
 async def save_session():
     """Save current session"""
     try:
@@ -72,7 +78,10 @@ async def save_session():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/save-as")
+@router.post(
+    "/save-as",
+    operation_id="save_session_as"
+)
 async def save_session_as():
     """Open Save Session As dialog"""
     try:
@@ -101,7 +110,10 @@ async def save_session_as():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/snapshot")
+@router.post(
+    "/snapshot",
+    operation_id="create_snapshot"
+)
 async def create_snapshot(request: SnapshotRequest = SnapshotRequest()):
     """Create a session snapshot"""
     try:
@@ -132,7 +144,10 @@ async def create_snapshot(request: SnapshotRequest = SnapshotRequest()):
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/undo")
+@router.post(
+    "/undo",
+    operation_id="undo_action"
+)
 async def undo_action():
     """Undo last action"""
     try:
@@ -161,7 +176,10 @@ async def undo_action():
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/redo")
+@router.post(
+    "/redo",
+    operation_id="redo_action"
+)
 async def redo_action():
     """Redo last action"""
     try:

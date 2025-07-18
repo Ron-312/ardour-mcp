@@ -48,7 +48,10 @@ class PanRequest(BaseModel):
         le=1.0
     )
 
-@router.post("/{track_number}/fader")
+@router.post(
+    "/{track_number}/fader",
+    operation_id="set_fader"
+)
 async def set_fader(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: FaderRequest = ...
@@ -81,7 +84,10 @@ async def set_fader(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/{track_number}/mute")
+@router.post(
+    "/{track_number}/mute",
+    operation_id="set_mute"
+)
 async def set_mute(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: MuteRequest = ...
@@ -115,7 +121,10 @@ async def set_mute(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/{track_number}/solo")
+@router.post(
+    "/{track_number}/solo",
+    operation_id="set_solo"
+)
 async def set_solo(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: SoloRequest = ...
@@ -149,7 +158,10 @@ async def set_solo(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/{track_number}/name")
+@router.post(
+    "/{track_number}/name",
+    operation_id="set_track_name"
+)
 async def set_track_name(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: NameRequest = ...
@@ -182,7 +194,10 @@ async def set_track_name(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/{track_number}/record-enable")
+@router.post(
+    "/{track_number}/record-enable",
+    operation_id="set_record_enable"
+)
 async def set_record_enable(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: RecordEnableRequest = ...
@@ -216,7 +231,10 @@ async def set_record_enable(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/{track_number}/record-safe")
+@router.post(
+    "/{track_number}/record-safe",
+    operation_id="set_record_safe"
+)
 async def set_record_safe(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: RecordSafeRequest = ...
@@ -250,7 +268,10 @@ async def set_record_safe(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.post("/{track_number}/pan")
+@router.post(
+    "/{track_number}/pan",
+    operation_id="set_pan"
+)
 async def set_pan(
     track_number: int = Path(..., description="Track number (1-based)", ge=1, le=256),
     request: PanRequest = ...
@@ -291,7 +312,10 @@ async def set_pan(
             detail=f"Internal server error: {str(e)}"
         )
 
-@router.get("/list")
+@router.get(
+    "/list",
+    operation_id="list_tracks"
+)
 async def list_tracks():
     """Query Ardour for list of all tracks"""
     try:
