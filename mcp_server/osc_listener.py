@@ -56,12 +56,17 @@ class TrackInfo:
 class OSCListener:
     """OSC listener for receiving feedback from Ardour"""
     
-    def __init__(self, listen_port: int = 3820):
+    def __init__(self, listen_port: Optional[int] = None):
         """Initialize OSC listener
         
         Args:
-            listen_port: Port to listen on for OSC feedback
+            listen_port: Port to listen on for OSC feedback (defaults to config value)
         """
+        if listen_port is None:
+            osc_config = get_osc_config()
+            # Use dedicated listen port for manual port mode (separate from send port)
+            # This prevents hearing our own outgoing messages as echoes
+            listen_port = osc_config.get("listen_port", 3820)  # Dedicated reply port
         self.listen_port = listen_port
         self.server = None
         self.server_thread = None
@@ -73,6 +78,16 @@ class OSCListener:
         self.current_track_id: Optional[int] = None
         self.current_plugin_id: Optional[int] = None
         self.surface_setup_complete: bool = False
+        
+        # Track strip list discovery state
+        self.strip_list_complete: bool = False
+        self.strip_list_session_framerate: Optional[float] = None
+        self.strip_list_last_frame: Optional[int] = None
+        
+        # Smart strip data collection - organized by strip ID
+        self.strip_data: Dict[int, Dict[str, Any]] = {}  # {strip_id: {property: value}}
+        self.strip_feedback_complete: bool = False
+        self.strip_feedback_start_time: Optional[float] = None
         
         # Callbacks for real-time updates
         self.parameter_callbacks: List[Callable] = []
@@ -99,11 +114,27 @@ class OSCListener:
         # Plugin activation feedback
         self.dispatcher.map("/select/plugin/activate", self._handle_plugin_activate)
         
-        # Strip list response (if it exists)
-        self.dispatcher.map("/strip/list", self._handle_strip_list_response)
+        # Strip list response handlers - Ardour sends responses to /reply, NOT /strip/list
+        self.dispatcher.map("/reply", self._handle_ardour_reply)  # Standard OSC reply format
         
-        # Generic fallback for debugging
-        self.dispatcher.map("/*", self._handle_debug_message)
+        # Non-standard #reply format (Ardour may use this)
+        try:
+            self.dispatcher.map("#reply", self._handle_non_standard_reply)  # Non-standard OSC format
+        except Exception:
+            # pythonosc may not support #reply, we'll catch it in default handler
+            logger.debug("Could not map #reply handler, will catch in default handler")
+        
+        # End of route list detection
+        self.dispatcher.map("/end_route_list", self._handle_end_route_list)
+        
+        # Smart strip feedback handler - captures all /strip/* messages
+        self.dispatcher.map("/strip/*", self._handle_strip_feedback)  # Collect all strip data
+        
+        # Other debug handlers
+        self.dispatcher.map("/select/*", self._handle_debug_message)  # Only select-related
+        
+        # Add catch-all for ANY message to debug what we're actually receiving
+        self.dispatcher.set_default_handler(self._handle_any_message)  # Catch EVERYTHING
         
     def _handle_strip_select(self, unused_addr: str, *args):
         """Handle strip selection feedback"""
@@ -225,12 +256,24 @@ class OSCListener:
         """Handle all other OSC messages for debugging"""
         logger.debug(f"OSC message: {unused_addr} - {args}")
         
-        # Enhanced logging for plugin discovery debugging
+        # Enhanced logging for different message types
         if "plugin" in unused_addr.lower():
             logger.info(f"[PLUGIN OSC MESSAGE]: {unused_addr} {args}")
         
         if "strip" in unused_addr.lower():
             logger.info(f"[STRIP OSC MESSAGE]: {unused_addr} {args}")
+            
+        # Enhanced logging for strip list related messages
+        if "list" in unused_addr.lower():
+            logger.info(f"[LIST OSC MESSAGE]: {unused_addr} {args}")
+            
+        # Log select messages which are important for feedback
+        if "select" in unused_addr.lower():
+            logger.info(f"[SELECT OSC MESSAGE]: {unused_addr} {args}")
+            
+        # Log any reply messages
+        if "reply" in unused_addr.lower():
+            logger.info(f"[REPLY OSC MESSAGE]: {unused_addr} {args}")
         
         # Store last message for debugging
         self.last_message = {
@@ -316,6 +359,247 @@ class OSCListener:
                     
         except Exception as e:
             logger.error(f"Error handling reply message: {e}")
+            
+    def _handle_non_standard_reply(self, unused_addr: str, *args):
+        """Handle non-standard #reply messages from Ardour"""
+        try:
+            logger.info(f"[#REPLY] Non-standard reply: {unused_addr} {args}")
+            # Process the same way as standard replies
+            self._process_potential_strip_data(unused_addr, args, "#REPLY")
+        except Exception as e:
+            logger.error(f"Error handling non-standard reply: {e}")
+            
+    def _handle_ardour_reply(self, unused_addr: str, *args):
+        """Handle Ardour /reply messages which may contain strip information"""
+        try:
+            logger.info(f"[/REPLY] Standard reply: {unused_addr} {args}")
+            # Process the same way for both reply types
+            self._process_potential_strip_data(unused_addr, args, "/REPLY")
+        except Exception as e:
+            logger.error(f"Error handling Ardour reply: {e}")
+            
+    def _process_potential_strip_data(self, addr: str, args: tuple, source: str):
+        """Process args that might contain strip information"""
+        try:
+            # Check if this is a strip list response
+            if len(args) >= 7 and isinstance(args[0], int):
+                # Try to parse as strip information
+                try:
+                    ssid = int(args[0])  # Surface Strip ID
+                    strip_type = str(args[1])  # "AT", "MT", "B", etc.
+                    name = str(args[2])  # Strip name
+                    inputs = int(args[3])  # Number of inputs
+                    outputs = int(args[4])  # Number of outputs
+                    mute = bool(int(args[5]))  # Mute state
+                    solo = bool(int(args[6]))  # Solo state
+                    
+                    # Store strip info
+                    strip_info = StripInfo(
+                        ssid=ssid,
+                        strip_type=strip_type,
+                        name=name,
+                        inputs=inputs,
+                        outputs=outputs,
+                        mute=mute,
+                        solo=solo
+                    )
+                    
+                    self.strips[ssid] = strip_info
+                    logger.info(f"[{source} STRIP] Stored strip {ssid}: {strip_type} '{name}' (I:{inputs} O:{outputs})")
+                    
+                except (ValueError, IndexError) as e:
+                    # Not strip data, just log for debugging
+                    logger.debug(f"[{source}] Could not parse as strip data: {args} - {e}")
+            else:
+                # Check if this is an end_route_list message
+                if len(args) >= 1 and "end_route_list" in str(args[0]):
+                    logger.info(f"[{source}] Found end_route_list in reply")
+                    self._handle_end_route_list_in_reply(args)
+                else:
+                    logger.debug(f"[{source}] Generic reply: {args}")
+                    
+        except Exception as e:
+            logger.error(f"Error processing potential strip data from {source}: {e}")
+            
+    def _handle_end_route_list(self, unused_addr: str, *args):
+        """Handle end_route_list message indicating strip list is complete"""
+        try:
+            logger.info(f"[END ROUTE LIST] Strip list complete: {unused_addr} {args}")
+            self.strip_list_complete = True
+            
+            # Parse additional information if available
+            if len(args) >= 2:
+                try:
+                    self.strip_list_session_framerate = float(args[0])
+                    self.strip_list_last_frame = int(args[1])
+                    logger.info(f"[END ROUTE LIST] Session framerate: {self.strip_list_session_framerate}, Last frame: {self.strip_list_last_frame}")
+                except (ValueError, IndexError):
+                    logger.debug(f"[END ROUTE LIST] Could not parse session info: {args}")
+                    
+        except Exception as e:
+            logger.error(f"Error handling end route list: {e}")
+            
+    def _handle_end_route_list_in_reply(self, args):
+        """Handle end_route_list when it comes as part of /reply message"""
+        try:
+            logger.info(f"[END ROUTE LIST IN REPLY] Strip list complete: {args}")
+            self.strip_list_complete = True
+            
+            # Parse additional information if available (args[1] and beyond)
+            if len(args) >= 3:
+                try:
+                    self.strip_list_session_framerate = float(args[1])
+                    self.strip_list_last_frame = int(args[2])
+                    logger.info(f"[END ROUTE LIST] Session framerate: {self.strip_list_session_framerate}, Last frame: {self.strip_list_last_frame}")
+                except (ValueError, IndexError):
+                    logger.debug(f"[END ROUTE LIST] Could not parse session info: {args}")
+                    
+        except Exception as e:
+            logger.error(f"Error handling end route list in reply: {e}")
+            
+    def _handle_any_message(self, unused_addr: str, *args):
+        """Ultimate catch-all handler for ANY OSC message we receive"""
+        logger.info(f"[OSC RECEIVED] Address: '{unused_addr}' Args: {args} Types: {[type(arg).__name__ for arg in args]}")
+        
+        # Check if this looks like a strip list response
+        if len(args) >= 7:
+            try:
+                # Try to parse as potential strip data
+                arg0, arg1, arg2 = args[0], args[1], args[2]
+                if (isinstance(arg0, int) and 
+                    isinstance(arg1, str) and len(arg1) <= 4 and  # Strip type like "AT", "MT"
+                    isinstance(arg2, str)):  # Strip name
+                    logger.info(f"[POTENTIAL STRIP DATA] SSID={arg0}, Type='{arg1}', Name='{arg2}', Full args={args}")
+            except Exception:
+                pass
+                
+        # Check for end route list
+        if len(args) >= 1 and "end_route_list" in str(args[0]).lower():
+            logger.info(f"[POTENTIAL END ROUTE LIST] Args: {args}")
+            
+        # Store for debugging
+        self.last_message = {
+            'address': unused_addr,
+            'args': args,
+            'timestamp': time.time()
+        }
+        
+    def _handle_strip_feedback(self, address: str, *args):
+        """Smart handler for all /strip/* feedback messages
+        
+        Parses address like '/strip/name/1' into property='name', strip_id=1
+        Stores all strip data in organized structure for easy access
+        """
+        try:
+            # EXTENSIVE DEBUG LOGGING
+            logger.info(f"[STRIP FEEDBACK CALLED] Address: {address}, Args: {args}, Types: {[type(arg).__name__ for arg in args]}")
+            
+            # Parse the OSC address: /strip/property/strip_id or /strip/property/automation/strip_id
+            parts = address.split('/')
+            logger.info(f"[STRIP FEEDBACK] Address parts: {parts}")
+            
+            if len(parts) < 3:
+                logger.warning(f"[STRIP FEEDBACK] Address too short: {address}")
+                return
+                
+            # Extract strip ID (last part of address)
+            try:
+                strip_id = int(parts[-1])
+                logger.info(f"[STRIP FEEDBACK] Extracted strip_id: {strip_id}")
+            except (ValueError, IndexError) as e:
+                logger.warning(f"[STRIP FEEDBACK] Could not extract strip_id from {parts[-1]}: {e}")
+                return
+                
+            # Extract property name (parts between 'strip' and strip_id)
+            property_parts = parts[2:-1]  # Skip '/strip' and strip_id
+            property_name = '/'.join(property_parts)
+            logger.info(f"[STRIP FEEDBACK] Property name: '{property_name}'")
+            
+            # Initialize strip data if not exists
+            if strip_id not in self.strip_data:
+                self.strip_data[strip_id] = {}
+                logger.info(f"[STRIP FEEDBACK] Initialized strip_data for strip {strip_id}")
+                
+            # Store the property value
+            if len(args) > 0:
+                value = args[0]
+                self.strip_data[strip_id][property_name] = value
+                logger.info(f"[STRIP FEEDBACK] Stored: strip_data[{strip_id}]['{property_name}'] = {value}")
+                
+                # Track feedback timing
+                if self.strip_feedback_start_time is None:
+                    self.strip_feedback_start_time = time.time()
+                    logger.info(f"[STRIP FEEDBACK] Started collecting strip data at {self.strip_feedback_start_time}")
+                
+                # Log important properties with EXTRA emphasis
+                if property_name in ['name', 'mute', 'solo', 'gain']:
+                    logger.info(f"[STRIP DATA ⭐] Strip {strip_id} {property_name}: {value}")
+            else:
+                logger.warning(f"[STRIP FEEDBACK] No args provided for {address}")
+                    
+        except Exception as e:
+            logger.error(f"[STRIP FEEDBACK ERROR] Error handling {address}: {e}")
+            import traceback
+            logger.error(f"[STRIP FEEDBACK ERROR] Traceback: {traceback.format_exc()}")
+            
+    def get_strip_summary(self, strip_id: int) -> Optional[Dict[str, Any]]:
+        """Get basic track summary for MCP client"""
+        if strip_id not in self.strip_data:
+            return None
+            
+        data = self.strip_data[strip_id]
+        return {
+            "ssid": strip_id,
+            "name": data.get("name", f"Track {strip_id}"),
+            "mute": bool(data.get("mute", 0.0)),
+            "solo": bool(data.get("solo", 0.0)),
+            "type": "AT"  # Default to Audio Track, could be enhanced later
+        }
+        
+    def get_strip_details(self, strip_id: int) -> Optional[Dict[str, Any]]:
+        """Get detailed track info for specific requests"""
+        if strip_id not in self.strip_data:
+            return None
+            
+        data = self.strip_data[strip_id]
+        return {
+            "ssid": strip_id,
+            "name": data.get("name", f"Track {strip_id}"),
+            "mute": bool(data.get("mute", 0.0)),
+            "solo": bool(data.get("solo", 0.0)),
+            "gain_db": float(data.get("gain", 0.0)),
+            "pan_position": float(data.get("pan_stereo_position", 0.5)),
+            "pan_width": float(data.get("pan_stereo_width", 0.5)),
+            "record_enabled": bool(data.get("recenable", 0.0)),
+            "record_safe": bool(data.get("record_safe", 0.0)),
+            "monitor_input": bool(data.get("monitor_input", 0)),
+            "monitor_disk": bool(data.get("monitor_disk", 0)),
+            "group": data.get("group", "").strip()
+        }
+        
+    def get_all_strip_summaries(self) -> List[Dict[str, Any]]:
+        """Get basic summaries of all discovered strips"""
+        summaries = []
+        for strip_id in sorted(self.strip_data.keys()):
+            summary = self.get_strip_summary(strip_id)
+            if summary:
+                summaries.append(summary)
+        return summaries
+        
+    def check_strip_feedback_complete(self, timeout: float = 2.0) -> bool:
+        """Check if strip feedback collection seems complete"""
+        if self.strip_feedback_start_time is None:
+            return False
+            
+        # Consider complete if we have data and haven't received new data for a while
+        elapsed = time.time() - self.strip_feedback_start_time
+        if elapsed > timeout and len(self.strip_data) > 0:
+            if not self.strip_feedback_complete:
+                logger.info(f"[STRIP FEEDBACK] Complete - found {len(self.strip_data)} strips")
+                self.strip_feedback_complete = True
+            return True
+            
+        return False
             
     def _handle_strip_list_response(self, unused_addr: str, *args):
         """Handle strip list response from Ardour

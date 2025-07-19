@@ -6,6 +6,7 @@ import logging
 from fastapi import APIRouter, Path, HTTPException
 from pydantic import BaseModel, Field
 from mcp_server.osc_client import get_osc_client
+from mcp_server.osc_listener import get_osc_listener
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/track", tags=["track"])
@@ -320,24 +321,164 @@ async def list_tracks():
     """Query Ardour for list of all tracks"""
     try:
         osc_client = get_osc_client()
-        success = osc_client.query_strip_list()
+        osc_listener = get_osc_listener()  # Get the listener
         
-        if success:
-            logger.info("Strip list query sent to Ardour")
-            return {
-                "status": "success",
-                "action": "list_tracks",
-                "message": "Strip list query sent to Ardour - check Ardour logs for results",
-                "osc_address": "/strip/list"
-            }
-        else:
-            logger.error("Failed to query strip list")
+        logger.info("[TRACK LIST] Starting track discovery process")
+        
+        # CRITICAL: Check if OSC listener is actually running
+        logger.info(f"[TRACK LIST] OSC Listener state check - running: {osc_listener.running}")
+        logger.info(f"[TRACK LIST] OSC Listener server object: {osc_listener.server}")
+        logger.info(f"[TRACK LIST] OSC Listener thread: {osc_listener.server_thread}")
+        
+        # Force-start OSC listener if not running
+        if not osc_listener.running:
+            logger.warning("[TRACK LIST] OSC Listener not running! Force-starting...")
+            try:
+                osc_listener.start()
+                import time
+                time.sleep(0.2)  # Give it a moment to initialize
+                logger.info(f"[TRACK LIST] After force-start - running: {osc_listener.running}")
+                if not osc_listener.running:
+                    raise Exception("Failed to start OSC listener")
+            except Exception as e:
+                logger.error(f"[TRACK LIST] Failed to force-start OSC listener: {e}")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"OSC Listener startup failed: {str(e)}"
+                )
+        
+        # Clear any existing strip data and reset state
+        osc_listener.strips.clear()
+        osc_listener.strip_data.clear()  # Clear smart strip data
+        osc_listener.strip_list_complete = False
+        osc_listener.strip_feedback_complete = False
+        osc_listener.strip_feedback_start_time = None
+        osc_listener.strip_list_session_framerate = None
+        osc_listener.strip_list_last_frame = None
+        
+        # Step 1: Setup OSC surface (required before strip list query)
+        # Use strip_types=3 for Audio (1) + MIDI (2) tracks only
+        # Use feedback=7 (1+2+4) for: button status + variable controls + SSID extension
+        logger.info("[TRACK LIST] Setting up OSC surface with feedback enabled")
+        logger.info(f"[TRACK LIST] OSC Listener running on port: {osc_listener.listen_port}")
+        logger.info(f"[TRACK LIST] OSC Listener server running: {osc_listener.running}")
+        logger.info(f"[TRACK LIST] Current strip_data keys: {list(osc_listener.strip_data.keys())}")
+        surface_success = osc_client.setup_surface(bank_size=0, strip_types=3, feedback=7)
+        
+        if not surface_success:
+            logger.error("[TRACK LIST] Failed to setup OSC surface")
             raise HTTPException(
                 status_code=500,
-                detail="Failed to query strip list from Ardour"
+                detail="Failed to setup OSC surface with Ardour"
             )
+            
+        # Small delay to let surface setup complete
+        import time
+        time.sleep(0.1)
+        
+        # Step 2: Send the strip list query
+        logger.info("[TRACK LIST] Requesting strip list from Ardour")
+        query_success = osc_client.query_strip_list()
+        
+        if not query_success:
+            logger.error("[TRACK LIST] Failed to send strip list query")
+            raise HTTPException(
+                status_code=500,
+                detail="Failed to send strip list query to Ardour"
+            )
+        
+        # Step 3: Wait for strip feedback to complete
+        start_time = time.time()
+        timeout = 3.0  # 3 seconds timeout for feedback
+        check_interval = 0.1  # Check every 100ms
+        
+        logger.info(f"[TRACK LIST] Waiting for strip feedback (timeout: {timeout}s)")
+        
+        while time.time() - start_time < timeout:
+            # Log current state during wait
+            current_strips = len(osc_listener.strip_data)
+            if current_strips > 0:
+                logger.info(f"[TRACK LIST] Found {current_strips} strips so far: {list(osc_listener.strip_data.keys())}")
+                
+            # Check if strip feedback collection is complete
+            if osc_listener.check_strip_feedback_complete():
+                logger.info("[TRACK LIST] Strip feedback collection complete")
+                break
+                
+            time.sleep(check_interval)
+        
+        elapsed = time.time() - start_time
+        
+        # DEBUG: Log final state
+        logger.info(f"[TRACK LIST] Final strip_data contents: {osc_listener.strip_data}")
+        logger.info(f"[TRACK LIST] Strip feedback start time: {osc_listener.strip_feedback_start_time}")
+        logger.info(f"[TRACK LIST] Strip feedback complete: {osc_listener.strip_feedback_complete}")
+        
+        # Get track summaries from smart strip data
+        track_summaries = osc_listener.get_all_strip_summaries()
+        logger.info(f"[TRACK LIST] Generated {len(track_summaries)} track summaries")
+        
+        logger.info(f"[TRACK LIST] Discovery completed in {elapsed:.2f}s, found {len(track_summaries)} tracks")
+        
+        # Return basic track summary for MCP client
+        result = {
+            "status": "success",
+            "action": "list_tracks",
+            "tracks": track_summaries,  # Using 'tracks' instead of 'strips' for clarity
+            "count": len(track_summaries),
+            "discovery_time": f"{elapsed:.2f}s",
+            "message": f"Found {len(track_summaries)} tracks"
+        }
+        
+        logger.info(f"[TRACK LIST] Returning {len(track_summaries)} tracks to MCP client")
+        for track in track_summaries:
+            logger.info(f"[TRACK LIST]   - {track['name']} (SSID {track['ssid']})")
+            
+        return result
+        
     except Exception as e:
         logger.error(f"Error in list_tracks: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Internal server error: {str(e)}"
+        )
+
+@router.get(
+    "/{track_id}/details",
+    operation_id="get_track_details"
+)
+async def get_track_details(
+    track_id: int = Path(..., description="Track/Strip ID (1-based)", ge=1, le=256)
+):
+    """Get detailed information about a specific track"""
+    try:
+        osc_listener = get_osc_listener()
+        
+        logger.info(f"[TRACK DETAILS] Getting details for track {track_id}")
+        
+        # Get detailed track info from smart strip data
+        track_details = osc_listener.get_strip_details(track_id)
+        
+        if track_details is None:
+            logger.warning(f"[TRACK DETAILS] Track {track_id} not found")
+            raise HTTPException(
+                status_code=404,
+                detail=f"Track {track_id} not found. Use /track/list to see available tracks."
+            )
+        
+        logger.info(f"[TRACK DETAILS] Found track: {track_details['name']}")
+        
+        return {
+            "status": "success",
+            "action": "get_track_details",
+            "track": track_details,
+            "message": f"Details for track {track_id}: {track_details['name']}"
+        }
+        
+    except HTTPException:
+        raise  # Re-raise HTTP exceptions as-is
+    except Exception as e:
+        logger.error(f"Error in get_track_details: {e}")
         raise HTTPException(
             status_code=500,
             detail=f"Internal server error: {str(e)}"

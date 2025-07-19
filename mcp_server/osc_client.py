@@ -215,7 +215,13 @@ class OSCClient:
         Returns:
             True if message sent successfully, False otherwise
         """
-        return self.send_message("/strip/list", 1)
+        logger.info("[OSC CLIENT] Sending strip list query to Ardour")
+        success = self.send_message("/strip/list", 1)
+        if success:
+            logger.info("[OSC CLIENT] Strip list query sent successfully")
+        else:
+            logger.error("[OSC CLIENT] Failed to send strip list query")
+        return success
     
     # Send/Aux Control Commands
     def set_send_level(self, track_index: int, send_index: int, level: float) -> bool:
@@ -280,7 +286,26 @@ class OSCClient:
         Returns:
             True if message sent successfully, False otherwise
         """
-        return self.send_message("/set_surface", bank_size, strip_types, feedback)
+        logger.info(f"[OSC CLIENT] Setting up surface: bank_size={bank_size}, strip_types={strip_types}, feedback={feedback}")
+        
+        # Decode strip types for logging
+        strip_type_names = []
+        if strip_types & 1:  strip_type_names.append("AudioTracks")
+        if strip_types & 2:  strip_type_names.append("MidiTracks") 
+        if strip_types & 4:  strip_type_names.append("AudioBusses")
+        if strip_types & 8:  strip_type_names.append("MidiBusses")
+        if strip_types & 16: strip_type_names.append("VCAs")
+        if strip_types & 32: strip_type_names.append("Master")
+        if strip_types & 64: strip_type_names.append("Monitor")
+        
+        logger.info(f"[OSC CLIENT] Strip types included: {', '.join(strip_type_names)}")
+        
+        success = self.send_message("/set_surface", bank_size, strip_types, feedback)
+        if success:
+            logger.info("[OSC CLIENT] Surface setup sent successfully")
+        else:
+            logger.error("[OSC CLIENT] Failed to send surface setup")
+        return success
     
     def list_strips(self) -> bool:
         """Request list of all available strips from Ardour
@@ -288,9 +313,8 @@ class OSCClient:
         Returns:
             True if message sent successfully, False otherwise
         """
-        self.send_message("/set_surface", 0, 159, 0)  # bank_size=0, strip_types=159, feedback=0
-        # Then we can select strips individually
-        return True
+        # Send the strip list request
+        return self.send_message("/strip/list", 1)
 
     # Plugin Discovery Commands
     def list_track_plugins(self, strip_id: int) -> bool:

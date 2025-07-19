@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     # OSC Configuration
     osc_target_ip: str = Field(default="127.0.0.1", env="OSC_TARGET_IP")
     osc_target_port: int = Field(default=3819, env="OSC_TARGET_PORT")
+    osc_listen_port: int = Field(default=3820, env="OSC_LISTEN_PORT")
     
     # FastAPI Server Configuration
     http_host: str = Field(default="0.0.0.0", env="HTTP_HOST")
@@ -59,7 +60,8 @@ def get_osc_config() -> dict:
     """Get OSC client configuration"""
     return {
         "ip": settings.osc_target_ip,
-        "port": settings.osc_target_port
+        "port": settings.osc_target_port,
+        "listen_port": settings.osc_listen_port
     }
 
 def get_server_config() -> dict:
